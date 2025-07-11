@@ -19,5 +19,17 @@ func PrepareTemplate() *template.Template {
 			}
 			return seq
 		},
+		"max": func(a, b int) int {
+			if a > b {
+				return a
+			}
+			return b
+		},
+		"min": func(a, b int) int {
+			if a > b {
+				return b
+			}
+			return a
+		},
 	}).Parse(RapidFeed.IndexTemplate))
 }

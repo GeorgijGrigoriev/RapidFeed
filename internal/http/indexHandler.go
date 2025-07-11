@@ -5,6 +5,7 @@ import (
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/feeder"
 	"html/template"
 	"log"
+	"math"
 	"net/http"
 	"strconv"
 )
@@ -39,7 +40,7 @@ func handler(tmpl *template.Template, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	totalPages := (totalCount + perPage - 1) / perPage
+	totalPages := int(math.Ceil(float64(totalCount) / float64(perPage)))
 
 	rows, err = db.DB.Query("SELECT title, link, date, source FROM feeds ORDER BY date DESC LIMIT ? OFFSET ?", perPage, offset)
 	if err != nil {

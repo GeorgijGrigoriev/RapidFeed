@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>RSS Reader</title>
+    <title>RapidFeed</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -26,11 +26,17 @@
             font-size: 2em;
             color: #2874A6;
         }
-        form {
-            text-align: center;
+        .control-panel {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 1.5rem;
         }
-        button {
+        .control-panel form {
+            display: flex;
+            align-items: center;
+        }
+        button, select {
             background-color: #2874A6;
             border: none;
             padding: 0.7rem 1.4rem;
@@ -39,8 +45,12 @@
             cursor: pointer;
             transition: background-color 0.3s ease;
         }
-        button:hover {
+        button:hover, select:hover {
             background-color: #1B4F72;
+        }
+        select {
+            appearance: none;
+            margin-left: 1rem;
         }
         ul {
             list-style-type: none;
@@ -79,14 +89,31 @@
 </head>
 <body>
 <header>
-    <h1 style="color: white">Latest RSS Feeds</h1>
+    <h1 style="color: white">RapidFeed</h1>
 </header>
 
 <div class="container">
-    <!-- Button to refresh the feed -->
-    <form action="/refresh" method="post">
-        <button type="submit">Refresh Feed</button>
-    </form>
+    <!-- Control panel with refresh button and per-page selection -->
+    <div class="control-panel">
+        <!-- Button to refresh the feed -->
+        <form action="/refresh" method="post">
+            <button type="submit">Refresh Feed</button>
+        </form>
+
+        <!-- Dropdown menu for selecting number of items per page -->
+        <form action="/" method="get">
+            <label for="per_page">Items per page:</label>
+            <select name="per_page" id="per_page" onchange="this.form.submit()">
+                <option value="10" {{if eq .PerPage 10}}selected{{end}}>10</option>
+                <option value="25" {{if eq .PerPage 25}}selected{{end}}>25</option>
+                <option value="50" {{if eq .PerPage 50}}selected{{end}}>50</option>
+                <option value="100" {{if eq .PerPage 100}}selected{{end}}>100</option>
+                <option value="250" {{if eq .PerPage 250}}selected{{end}}>250</option>
+                <option value="500" {{if eq .PerPage 500}}selected{{end}}>500</option>
+                <option value="1000" {{if eq .PerPage 1000}}selected{{end}}>1000</option>
+            </select>
+        </form>
+    </div>
 
     <!-- Pagination controls -->
     <div class="pagination">
@@ -94,20 +121,24 @@
         <a href="?page=1&per_page={{.PerPage}}">First</a>
         <a href="?page={{sub .Page 1}}&per_page={{.PerPage}}">Previous</a>
         {{end}}
-        {{range $i := seq 1 .TotalPages}}
+
+        {{range $i := seq (max 1 (sub .Page 2)) (min .TotalPages (add .Page 2))}}
         <a class="{{if eq $i $.Page}}active{{end}}" href="?page={{$i}}&per_page={{$.PerPage}}">{{$i}}</a>
         {{end}}
+
         {{if lt .Page .TotalPages}}
         <a href="?page={{add .Page 1}}&per_page={{.PerPage}}">Next</a>
         <a href="?page={{.TotalPages}}&per_page={{.PerPage}}">Last</a>
         {{end}}
+
+        <a>Total Pages: {{ .TotalPages }}</a>
     </div>
 
     <ul>
         {{range .Items}}
         <li>
-            <a href="{{.Link}}">{{.Title}}</a> - {{.Date}}<br>
-            <span style="font-size: 0.9em; color: #555;">Source: {{.Source}}</span>
+            <a href="{{.Link}}">{{.Title}}</a><br>
+            <span style="font-size: 0.9em; color: #555;">{{.Date}} - {{.Source}}</span>
         </li>
         {{end}}
     </ul>
@@ -118,9 +149,11 @@
         <a href="?page=1&per_page={{.PerPage}}">First</a>
         <a href="?page={{sub .Page 1}}&per_page={{.PerPage}}">Previous</a>
         {{end}}
-        {{range $i := seq 1 .TotalPages}}
+
+        {{range $i := seq (max 1 (sub .Page 2)) (min .TotalPages (add .Page 2))}}
         <a class="{{if eq $i $.Page}}active{{end}}" href="?page={{$i}}&per_page={{$.PerPage}}">{{$i}}</a>
         {{end}}
+
         {{if lt .Page .TotalPages}}
         <a href="?page={{add .Page 1}}&per_page={{.PerPage}}">Next</a>
         <a href="?page={{.TotalPages}}&per_page={{.PerPage}}">Last</a>
