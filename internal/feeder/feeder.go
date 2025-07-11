@@ -4,12 +4,16 @@ import (
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/db"
 	"github.com/mmcdole/gofeed"
 	"log"
+	"log/slog"
+	"regexp"
 )
 
 var feedParser = gofeed.NewParser()
 
 func FetchAndSaveFeeds(urls []string) {
 	for _, url := range urls {
+		slog.Info("[FEEDER]", "fetching feed", url)
+
 		source := extractSourceFromURL(url)
 		fetchAndSaveFeed(url, source)
 	}
@@ -33,18 +37,27 @@ func fetchAndSaveFeed(url, source string) {
 			continue
 		}
 		if !exists {
-			insertQuery := `INSERT OR IGNORE INTO feeds (title, link, date, source) VALUES (?, ?, ?, ?)`
-			db.DB.Exec(insertQuery, item.Title, item.Link, item.PublishedParsed.Format("2006-01-02 15:04:05"), source)
+			insertQuery := `INSERT OR IGNORE INTO feeds (title, link, date, source, description) VALUES (?, ?, ?, ?, ?)`
+			_, err := db.DB.Exec(insertQuery, item.Title, item.Link, item.PublishedParsed.Format("2006-01-02 15:04:05"), source, cleanHTMLTags(item.Description))
+			if err != nil {
+				slog.Error("Error inserting new item in feed:", err)
+			}
 		}
 	}
 }
 
 func extractSourceFromURL(url string) string {
-	// Просто используем доменное имя в качестве источника
 	host := ""
 	if parsedURL, err := feedParser.ParseURL(url); err == nil && parsedURL.Title != "" {
 		host = parsedURL.Title
 	}
 
 	return host
+}
+
+func cleanHTMLTags(input string) string {
+	re := regexp.MustCompile(`<[^>]*>`)
+	result := re.ReplaceAllString(input, "")
+
+	return result
 }

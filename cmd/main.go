@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/http"
 	"log"
 	"log/slog"
@@ -14,23 +13,30 @@ import (
 var feeds = []string{
 	"https://www.cnews.ru/inc/rss/news.xml",
 	"https://www.opennet.ru/opennews/opennews_all_utf.rss",
+	"https://3dnews.ru/breaking/rss/",
 }
 
 func init() {
 	slog.Info("Initializing RapidFeed")
-	var err error
-	db.DB, err = sql.Open("sqlite3", "./feeds.db")
+
+	slog.Info("Try to open database")
+
+	db.InitDB()
+
+	slog.Info("Database initialized")
+
+	db.InitSchema() // maybe not necessary call it every time?
+
+	// Create default admin user
+	var adminExists bool
+	err := db.DB.QueryRow(`SELECT EXISTS(SELECT 1 FROM users WHERE username = 'admin')`).Scan(&adminExists)
 	if err != nil {
 		log.Fatal(err)
 	}
-	createTableQuery := `CREATE TABLE IF NOT EXISTS feeds (
-        "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-        "title" TEXT,
-        "link" TEXT,
-        "date" TEXT,
-        "source" TEXT
-    )`
-	db.DB.Exec(createTableQuery)
+	if !adminExists {
+		insertAdminQuery := `INSERT INTO users (username, password, role) VALUES ('admin', 'admin', 'admin')`
+		db.DB.Exec(insertAdminQuery)
+	}
 
 	feeder.FetchAndSaveFeeds(feeds)
 }

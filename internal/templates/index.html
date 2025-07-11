@@ -11,19 +11,38 @@
             background-color: #f4f4f9;
             color: #333;
         }
-        header {
-            background: #2874A6;
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #2874A6;
+            padding: 1rem;
             color: white;
-            text-align: center;
-            padding: 1rem 0;
+        }
+        .navbar-brand {
+            font-size: 1.5em;
+            margin-left: 1rem;
+        }
+        .navbar-nav {
+            display: flex;
+            align-items: center;
+        }
+        .navbar-nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 1rem;
+            font-size: 1em;
+        }
+        .navbar-nav a:hover {
+            text-decoration: underline;
         }
         .container {
             max-width: 800px;
             margin: 2rem auto;
             padding: 0 1rem;
         }
-        h1 {
-            font-size: 2em;
+        h3 {
+            font-size: 1.5em;
             color: #2874A6;
         }
         .control-panel {
@@ -88,9 +107,23 @@
     </style>
 </head>
 <body>
-<header>
-    <h1 style="color: white">RapidFeed</h1>
-</header>
+<nav class="navbar">
+    <div class="navbar-brand">RapidFeed</div>
+    <div class="navbar-nav">
+        {{if .User}}
+            Logged in as: {{.User.Username}}
+            {{if eq .User.Role "admin"}}
+                <a href="/admin/users">Admin Settings</a>
+            {{end}}
+            <a href="/settings">Settings</a>
+            <form action="/logout" method="post">
+                <button type="submit">Logout</button>
+            </form>
+        {{else}}
+            <a href="/login">Login</a> | <a href="/register">Register</a>
+        {{end}}
+    </div>
+</nav>
 
 <div class="container">
     <!-- Control panel with refresh button and per-page selection -->
@@ -104,59 +137,62 @@
         <form action="/" method="get">
             <label for="per_page">Items per page:</label>
             <select name="per_page" id="per_page" onchange="this.form.submit()">
-                <option value="10" {{if eq .PerPage 10}}selected{{end}}>10</option>
-                <option value="25" {{if eq .PerPage 25}}selected{{end}}>25</option>
-                <option value="50" {{if eq .PerPage 50}}selected{{end}}>50</option>
-                <option value="100" {{if eq .PerPage 100}}selected{{end}}>100</option>
-                <option value="250" {{if eq .PerPage 250}}selected{{end}}>250</option>
-                <option value="500" {{if eq .PerPage 500}}selected{{end}}>500</option>
-                <option value="1000" {{if eq .PerPage 1000}}selected{{end}}>1000</option>
+                <option value="10" {{if eq .PaginatedItems.PerPage 10}}selected{{end}}>10</option>
+                <option value="25" {{if eq .PaginatedItems.PerPage 25}}selected{{end}}>25</option>
+                <option value="50" {{if eq .PaginatedItems.PerPage 50}}selected{{end}}>50</option>
+                <option value="100" {{if eq .PaginatedItems.PerPage 100}}selected{{end}}>100</option>
+                <option value="250" {{if eq .PaginatedItems.PerPage 250}}selected{{end}}>250</option>
+                <option value="500" {{if eq .PaginatedItems.PerPage 500}}selected{{end}}>500</option>
+                <option value="1000" {{if eq .PaginatedItems.PerPage 1000}}selected{{end}}>1000</option>
             </select>
         </form>
     </div>
 
     <!-- Pagination controls -->
     <div class="pagination">
-        {{if gt .Page 1}}
-        <a href="?page=1&per_page={{.PerPage}}">First</a>
-        <a href="?page={{sub .Page 1}}&per_page={{.PerPage}}">Previous</a>
+        {{if gt .PaginatedItems.Page 1}}
+        <a href="?page=1&per_page={{.PaginatedItems.PerPage}}">First</a>
+        <a href="?page={{sub .PaginatedItems.Page 1}}&per_page={{.PaginatedItems.PerPage}}">Previous</a>
         {{end}}
 
-        {{range $i := seq (max 1 (sub .Page 2)) (min .TotalPages (add .Page 2))}}
-        <a class="{{if eq $i $.Page}}active{{end}}" href="?page={{$i}}&per_page={{$.PerPage}}">{{$i}}</a>
+        {{range $i := seq (max 1 (sub .PaginatedItems.Page 2)) (min .PaginatedItems.TotalPages (add .PaginatedItems.Page 2))}}
+        <a class="{{if eq $i $.PaginatedItems.Page}}active{{end}}" href="?page={{$i}}&per_page={{$.PaginatedItems.PerPage}}">{{$i}}</a>
         {{end}}
 
-        {{if lt .Page .TotalPages}}
-        <a href="?page={{add .Page 1}}&per_page={{.PerPage}}">Next</a>
-        <a href="?page={{.TotalPages}}&per_page={{.PerPage}}">Last</a>
+        {{if lt .PaginatedItems.Page .PaginatedItems.TotalPages}}
+        <a href="?page={{add .PaginatedItems.Page 1}}&per_page={{.PaginatedItems.PerPage}}">Next</a>
+        <a href="?page={{.PaginatedItems.TotalPages}}&per_page={{.PaginatedItems.PerPage}}">Last</a>
         {{end}}
 
-        <a>Total Pages: {{ .TotalPages }}</a>
+        <a>Total Items: {{ .PaginatedItems.TotalItems }}</a>
     </div>
 
     <ul>
-        {{range .Items}}
+        {{range .PaginatedItems.Items}}
         <li>
             <a href="{{.Link}}">{{.Title}}</a><br>
-            <span style="font-size: 0.9em; color: #555;">{{.Date}} - {{.Source}}</span>
+            {{if .Description}}
+            <p>{{.Description}}</p>
+            {{end}}
+            <span style="font-size: 0.9em; color: #555;">{{.Date}} - {{.Source}}</span><br>
         </li>
         {{end}}
     </ul>
 
     <!-- Pagination controls -->
     <div class="pagination">
-        {{if gt .Page 1}}
-        <a href="?page=1&per_page={{.PerPage}}">First</a>
-        <a href="?page={{sub .Page 1}}&per_page={{.PerPage}}">Previous</a>
+        {{if gt .PaginatedItems.Page 1}}
+        <a href="?page=1&per_page={{.PaginatedItems.PerPage}}">First</a>
+        <a href="?page={{sub .PaginatedItems.Page 1}}&per_page={{.PaginatedItems.PerPage}}">Previous</a>
         {{end}}
 
-        {{range $i := seq (max 1 (sub .Page 2)) (min .TotalPages (add .Page 2))}}
-        <a class="{{if eq $i $.Page}}active{{end}}" href="?page={{$i}}&per_page={{$.PerPage}}">{{$i}}</a>
+        {{range $i := seq (max 1 (sub .PaginatedItems.Page 2)) (min .PaginatedItems.TotalPages (add .PaginatedItems.Page 2))}}
+        <a class="{{if eq $i $.PaginatedItems.Page}}active{{end}}" href="?page={{$i}}&per_page={{$.PaginatedItems.PerPage}}">{{$i}}</a>
         {{end}}
 
-        {{if lt .Page .TotalPages}}
-        <a href="?page={{add .Page 1}}&per_page={{.PerPage}}">Next</a>
-        <a href="?page={{.TotalPages}}&per_page={{.PerPage}}">Last</a>
+        {{if lt .PaginatedItems.Page .PaginatedItems.TotalPages}}
+        <a href="?page={{add .PaginatedItems.Page 1}}&per_page={{.PaginatedItems.PerPage}}">Next</a>
+        <a href="?page={{.PaginatedItems.TotalPages}}&per_page={{.PaginatedItems.PerPage}}">Last</a>
         {{end}}
     </div>
 </div>

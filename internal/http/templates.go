@@ -5,7 +5,12 @@ import (
 	"html/template"
 )
 
-func PrepareTemplate() *template.Template {
+func PrepareTemplate(name string) *template.Template {
+	f, err := RapidFeed.HTMLTemplates.ReadFile(name)
+	if err != nil {
+		panic(err)
+	}
+
 	return template.Must(template.New("template").Funcs(template.FuncMap{
 		"sub": func(a, b int) int { return a - b },
 		"add": func(a, b int) int { return a + b },
@@ -31,5 +36,5 @@ func PrepareTemplate() *template.Template {
 			}
 			return a
 		},
-	}).Parse(RapidFeed.IndexTemplate))
+	}).Parse(string(f)))
 }

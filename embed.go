@@ -1,6 +1,8 @@
 package RapidFeed
 
-import _ "embed"
+import (
+	"embed"
+)
 
-//go:embed internal/templates/index.html
-var IndexTemplate string
+//go:embed internal/templates/*
+var HTMLTemplates embed.FS

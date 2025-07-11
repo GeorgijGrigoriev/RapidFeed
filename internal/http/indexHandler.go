@@ -42,7 +42,7 @@ func handler(tmpl *template.Template, w http.ResponseWriter, r *http.Request) {
 
 	totalPages := int(math.Ceil(float64(totalCount) / float64(perPage)))
 
-	rows, err = db.DB.Query("SELECT title, link, date, source FROM feeds ORDER BY date DESC LIMIT ? OFFSET ?", perPage, offset)
+	rows, err = db.DB.Query("SELECT title, link, date, source, description FROM feeds ORDER BY date DESC LIMIT ? OFFSET ?", perPage, offset)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -51,10 +51,11 @@ func handler(tmpl *template.Template, w http.ResponseWriter, r *http.Request) {
 	var items []feeder.FeedItem
 	for rows.Next() {
 		var item feeder.FeedItem
-		err := rows.Scan(&item.Title, &item.Link, &item.Date, &item.Source)
+		err := rows.Scan(&item.Title, &item.Link, &item.Date, &item.Source, &item.Description)
 		if err != nil {
 			log.Fatal(err)
 		}
+
 		items = append(items, item)
 	}
 
@@ -63,9 +64,25 @@ func handler(tmpl *template.Template, w http.ResponseWriter, r *http.Request) {
 		Page:       page,
 		PerPage:    perPage,
 		TotalPages: totalPages,
+		TotalItems: totalCount,
 	}
 
-	err = tmpl.Execute(w, paginatedItems)
+	session, _ := store.Get(r, "rapid-feed")
+	userID, ok := session.Values["user_id"].(int)
+	var user feeder.User
+	if ok && userID != 0 {
+		err := db.DB.QueryRow(`SELECT id, username, role FROM users WHERE id = ?`, userID).Scan(&user.ID, &user.Username, &user.Role)
+		if err != nil {
+			log.Println("Error fetching user:", err)
+		}
+	}
+
+	data := map[string]interface{}{
+		"PaginatedItems": paginatedItems,
+		"User":           user,
+	}
+
+	err = tmpl.Execute(w, data)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Error parsing template", http.StatusInternalServerError)

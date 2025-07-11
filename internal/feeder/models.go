@@ -1,10 +1,11 @@
 package feeder
 
 type FeedItem struct {
-	Title  string
-	Link   string
-	Date   string
-	Source string
+	Title       string
+	Link        string
+	Date        string
+	Source      string
+	Description string
 }
 
 type PaginatedFeedItems struct {
@@ -12,4 +13,11 @@ type PaginatedFeedItems struct {
 	Page       int
 	PerPage    int
 	TotalPages int
+	TotalItems int
+}
+
+type User struct {
+	ID       int
+	Username string
+	Role     string
 }
