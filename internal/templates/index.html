@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>RSS Reader</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        header {
+            background: #2874A6;
+            color: white;
+            text-align: center;
+            padding: 1rem 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        h1 {
+            font-size: 2em;
+            color: #2874A6;
+        }
+        form {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        button {
+            background-color: #2874A6;
+            border: none;
+            padding: 0.7rem 1.4rem;
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #1B4F72;
+        }
+        ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        li {
+            background: white;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        li a {
+            text-decoration: none;
+            color: #2874A6;
+            font-weight: bold;
+        }
+        li a:hover {
+            text-decoration: underline;
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+        .pagination a {
+            margin: 0 0.5rem;
+            text-decoration: none;
+            color: #2874A6;
+        }
+        .pagination a.active {
+            font-weight: bold;
+            color: #1B4F72;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <h1 style="color: white">Latest RSS Feeds</h1>
+</header>
+
+<div class="container">
+    <!-- Button to refresh the feed -->
+    <form action="/refresh" method="post">
+        <button type="submit">Refresh Feed</button>
+    </form>
+
+    <!-- Pagination controls -->
+    <div class="pagination">
+        {{if gt .Page 1}}
+        <a href="?page=1&per_page={{.PerPage}}">First</a>
+        <a href="?page={{sub .Page 1}}&per_page={{.PerPage}}">Previous</a>
+        {{end}}
+        {{range $i := seq 1 .TotalPages}}
+        <a class="{{if eq $i $.Page}}active{{end}}" href="?page={{$i}}&per_page={{$.PerPage}}">{{$i}}</a>
+        {{end}}
+        {{if lt .Page .TotalPages}}
+        <a href="?page={{add .Page 1}}&per_page={{.PerPage}}">Next</a>
+        <a href="?page={{.TotalPages}}&per_page={{.PerPage}}">Last</a>
+        {{end}}
+    </div>
+
+    <ul>
+        {{range .Items}}
+        <li>
+            <a href="{{.Link}}">{{.Title}}</a> - {{.Date}}<br>
+            <span style="font-size: 0.9em; color: #555;">Source: {{.Source}}</span>
+        </li>
+        {{end}}
+    </ul>
+
+    <!-- Pagination controls -->
+    <div class="pagination">
+        {{if gt .Page 1}}
+        <a href="?page=1&per_page={{.PerPage}}">First</a>
+        <a href="?page={{sub .Page 1}}&per_page={{.PerPage}}">Previous</a>
+        {{end}}
+        {{range $i := seq 1 .TotalPages}}
+        <a class="{{if eq $i $.Page}}active{{end}}" href="?page={{$i}}&per_page={{$.PerPage}}">{{$i}}</a>
+        {{end}}
+        {{if lt .Page .TotalPages}}
+        <a href="?page={{add .Page 1}}&per_page={{.PerPage}}">Next</a>
+        <a href="?page={{.TotalPages}}&per_page={{.PerPage}}">Last</a>
+        {{end}}
+    </div>
+</div>
+</body>
+</html>
