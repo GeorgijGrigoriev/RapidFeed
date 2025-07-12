@@ -15,9 +15,3 @@ type PaginatedFeedItems struct {
 	TotalPages int
 	TotalItems int
 }
-
-type User struct {
-	ID       int
-	Username string
-	Role     string
-}

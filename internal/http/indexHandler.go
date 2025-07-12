@@ -5,12 +5,28 @@ import (
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/feeder"
 	"html/template"
 	"log"
+	"log/slog"
 	"math"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 func handler(tmpl *template.Template, w http.ResponseWriter, r *http.Request) {
+	userID, err := checkSession(r)
+	if err != nil {
+		forbiddenHandler(w, r)
+
+		return
+	}
+
+	userFeeds, err := db.GetUserFeedUrls(userID)
+	if err != nil {
+		internalServerErrorHandler(w, r, err)
+
+		return
+	}
+
 	pageStr := r.URL.Query().Get("page")
 	perPageStr := r.URL.Query().Get("per_page")
 
@@ -26,7 +42,9 @@ func handler(tmpl *template.Template, w http.ResponseWriter, r *http.Request) {
 
 	offset := (page - 1) * perPage
 
-	rows, err := db.DB.Query("SELECT COUNT(*) FROM feeds")
+	joinedUrls := strings.Join(userFeeds, ",")
+
+	rows, err := db.DB.Query("SELECT COUNT(*) FROM feeds where feed_url IN (?)", joinedUrls)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -42,7 +60,7 @@ func handler(tmpl *template.Template, w http.ResponseWriter, r *http.Request) {
 
 	totalPages := int(math.Ceil(float64(totalCount) / float64(perPage)))
 
-	rows, err = db.DB.Query("SELECT title, link, date, source, description FROM feeds ORDER BY date DESC LIMIT ? OFFSET ?", perPage, offset)
+	rows, err = db.DB.Query("SELECT title, link, date, source, description FROM feeds WHERE feed_url IN (?) ORDER BY date DESC LIMIT ? OFFSET ?", joinedUrls, perPage, offset)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -67,25 +85,26 @@ func handler(tmpl *template.Template, w http.ResponseWriter, r *http.Request) {
 		TotalItems: totalCount,
 	}
 
-	session, _ := store.Get(r, "rapid-feed")
-	userID, ok := session.Values["user_id"].(int)
-	var user feeder.User
-	if ok && userID != 0 {
-		err := db.DB.QueryRow(`SELECT id, username, role FROM users WHERE id = ?`, userID).Scan(&user.ID, &user.Username, &user.Role)
-		if err != nil {
-			log.Println("Error fetching user:", err)
-		}
+	user, err := db.GetUserInfo(userID)
+	if err != nil {
+		forbiddenHandler(w, r)
+
+		return
 	}
 
 	data := map[string]interface{}{
 		"PaginatedItems": paginatedItems,
 		"User":           user,
+		"Title":          "RapidFeed",
+		"NoFeeds":        len(userFeeds) == 0,
 	}
 
-	err = tmpl.Execute(w, data)
+	err = tmpl.ExecuteTemplate(w, "base", data)
 	if err != nil {
-		log.Println(err)
-		http.Error(w, "Error parsing template", http.StatusInternalServerError)
+		slog.Error("failed to execute index page template", "error", err)
+
+		internalServerErrorHandler(w, r, err)
+
 		return
 	}
 }

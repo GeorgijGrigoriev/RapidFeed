@@ -13,7 +13,7 @@ type UserFeed struct {
 	FeedURL string `json:"feed_url"`
 }
 
-type AdminUser struct {
+type UserWithFeeds struct {
 	User      User
 	UserFeeds []UserFeed
 }

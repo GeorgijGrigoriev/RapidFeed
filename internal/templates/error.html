@@ -1,0 +1,17 @@
+{{ define "content" }}
+<div class="error-container">
+    <div class="error-card">
+        <h1>{{.Status}} - {{.Title}}</h1>
+        <p>{{.Message}}</p>
+        <div class="error-details">
+            {{if .Error}}
+            <details>
+                <summary>Technical Details</summary>
+                <pre>{{.Error}}</pre>
+            </details>
+            {{end}}
+        </div>
+        <a href="/" class="home-button">Return to Home</a>
+    </div>
+</div>
+{{ end }}

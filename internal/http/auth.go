@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/GeorgijGrigoriev/RapidFeed"
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/db"
+	"github.com/GeorgijGrigoriev/RapidFeed/internal/utils"
 	"html/template"
 	"log/slog"
 	"net/http"
@@ -33,7 +34,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		session, err := store.Get(r, "rapid-feed")
+		session, err := store.Get(r, utils.SecretKey)
 		if err != nil {
 			slog.Error("old session possibly corrupted, creating new one", "error", err)
 		}
@@ -42,14 +43,19 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 		err = session.Save(r, w)
 		if err != nil {
+			slog.Error("session save error", "error", err)
+
 			http.Error(w, "Failed to save session", http.StatusInternalServerError)
+
 			return
 		}
 
 		http.Redirect(w, r, "/", http.StatusFound) // Redirect to the main page after successful login
 	} else {
-
-		loginTemplate.Execute(w, nil)
+		data := map[string]interface{}{
+			"RegisterAllowed": utils.RegisterAllowed,
+		}
+		loginTemplate.Execute(w, data)
 	}
 }
 
@@ -60,7 +66,10 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 
 		_, err := db.DB.Exec(`INSERT INTO users (username, password, role) VALUES (?, ?, 'user')`, username, password)
 		if err != nil {
+			slog.Error("new user failed", "error", err)
+
 			http.Error(w, "Failed to register user", http.StatusInternalServerError)
+
 			return
 		}
 
@@ -71,7 +80,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "rapid-feed")
+	session, _ := store.Get(r, utils.SecretKey)
 	session.Options.MaxAge = -1
 	err := session.Save(r, w)
 	if err != nil {

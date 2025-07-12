@@ -1,139 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>RapidFeed</title>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f9;
-            color: #333;
-        }
-        .navbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: #2874A6;
-            padding: 1rem;
-            color: white;
-        }
-        .navbar-brand {
-            font-size: 1.5em;
-            margin-left: 1rem;
-        }
-        .navbar-nav {
-            display: flex;
-            align-items: center;
-        }
-        .navbar-nav a {
-            color: white;
-            text-decoration: none;
-            margin: 0 1rem;
-            font-size: 1em;
-        }
-        .navbar-nav a:hover {
-            text-decoration: underline;
-        }
-        .container {
-            max-width: 800px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-        }
-        h3 {
-            font-size: 1.5em;
-            color: #2874A6;
-        }
-        .control-panel {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-        }
-        .control-panel form {
-            display: flex;
-            align-items: center;
-        }
-        button, select {
-            background-color: #2874A6;
-            border: none;
-            padding: 0.7rem 1.4rem;
-            color: white;
-            font-size: 1em;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-        button:hover, select:hover {
-            background-color: #1B4F72;
-        }
-        select {
-            appearance: none;
-            margin-left: 1rem;
-        }
-        ul {
-            list-style-type: none;
-            padding-left: 0;
-        }
-        li {
-            background: white;
-            margin-bottom: 1rem;
-            padding: 1rem;
-            border-radius: 5px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        li a {
-            text-decoration: none;
-            color: #2874A6;
-            font-weight: bold;
-        }
-        li a:hover {
-            text-decoration: underline;
-        }
-        .pagination {
-            display: flex;
-            justify-content: center;
-            margin-top: 1rem;
-        }
-        .pagination a {
-            margin: 0 0.5rem;
-            text-decoration: none;
-            color: #2874A6;
-        }
-        .pagination a.active {
-            font-weight: bold;
-            color: #1B4F72;
-        }
-    </style>
-</head>
-<body>
-<nav class="navbar">
-    <div class="navbar-brand">RapidFeed</div>
-    <div class="navbar-nav">
-        {{if .User}}
-            Logged in as: {{.User.Username}}
-            {{if eq .User.Role "admin"}}
-                <a href="/admin/users">Admin Settings</a>
-            {{end}}
-            <a href="/settings">Settings</a>
-            <form action="/logout" method="post">
-                <button type="submit">Logout</button>
-            </form>
-        {{else}}
-            <a href="/login">Login</a> | <a href="/register">Register</a>
-        {{end}}
-    </div>
-</nav>
-
+{{ define "content" }}
+{{if not .NoFeeds }}
 <div class="container">
-    <!-- Control panel with refresh button and per-page selection -->
     <div class="control-panel">
-        <!-- Button to refresh the feed -->
         <form action="/refresh" method="post">
             <button type="submit">Refresh Feed</button>
         </form>
-
-        <!-- Dropdown menu for selecting number of items per page -->
         <form action="/" method="get">
             <label for="per_page">Items per page:</label>
             <select name="per_page" id="per_page" onchange="this.form.submit()">
@@ -148,7 +19,6 @@
         </form>
     </div>
 
-    <!-- Pagination controls -->
     <div class="pagination">
         {{if gt .PaginatedItems.Page 1}}
         <a href="?page=1&per_page={{.PaginatedItems.PerPage}}">First</a>
@@ -179,7 +49,6 @@
         {{end}}
     </ul>
 
-    <!-- Pagination controls -->
     <div class="pagination">
         {{if gt .PaginatedItems.Page 1}}
         <a href="?page=1&per_page={{.PaginatedItems.PerPage}}">First</a>
@@ -196,5 +65,10 @@
         {{end}}
     </div>
 </div>
-</body>
-</html>
+{{- else }}
+<div class="container">
+    <p>No feeds added yet.</p>
+    <p>Maybe <a href="/settings">add</a> one or another?</p>
+</div>
+{{- end }}
+{{- end }}

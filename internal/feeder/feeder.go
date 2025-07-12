@@ -30,15 +30,15 @@ func fetchAndSaveFeed(url, source string) {
 	for _, item := range fp.Items {
 		var exists bool
 
-		err := db.DB.QueryRow(`SELECT EXISTS(SELECT 1 FROM feeds WHERE link = $1)`, item.Link).Scan(&exists)
+		err := db.DB.QueryRow(`SELECT EXISTS(SELECT 1 FROM feeds WHERE link = $1 AND feed_url = $2)`, item.Link, url).Scan(&exists)
 		if err != nil {
 			log.Println("Error checking not new item in feed:", err)
 
 			continue
 		}
 		if !exists {
-			insertQuery := `INSERT OR IGNORE INTO feeds (title, link, date, source, description) VALUES (?, ?, ?, ?, ?)`
-			_, err := db.DB.Exec(insertQuery, item.Title, item.Link, item.PublishedParsed.Format("2006-01-02 15:04:05"), source, cleanHTMLTags(item.Description))
+			insertQuery := `INSERT OR IGNORE INTO feeds (title, link, date, source, description, feed_url) VALUES (?, ?, ?, ?, ?, ?)`
+			_, err := db.DB.Exec(insertQuery, item.Title, item.Link, item.PublishedParsed.Format("2006-01-02 15:04"), source, cleanHTMLTags(item.Description), url)
 			if err != nil {
 				slog.Error("Error inserting new item in feed:", err)
 			}

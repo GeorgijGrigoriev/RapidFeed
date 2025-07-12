@@ -1,17 +1,11 @@
 package http
 
 import (
-	"github.com/GeorgijGrigoriev/RapidFeed"
 	"html/template"
 )
 
-func PrepareTemplate(name string) *template.Template {
-	f, err := RapidFeed.HTMLTemplates.ReadFile(name)
-	if err != nil {
-		panic(err)
-	}
-
-	return template.Must(template.New("template").Funcs(template.FuncMap{
+func PrepareTemplate(name ...string) *template.Template {
+	return template.Must(template.New("").Funcs(template.FuncMap{
 		"sub": func(a, b int) int { return a - b },
 		"add": func(a, b int) int { return a + b },
 		"seq": func(start, end int) []int {
@@ -36,5 +30,5 @@ func PrepareTemplate(name string) *template.Template {
 			}
 			return a
 		},
-	}).Parse(string(f)))
+	}).ParseFiles(name...))
 }

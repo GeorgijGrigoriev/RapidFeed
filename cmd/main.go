@@ -2,11 +2,10 @@ package main
 
 import (
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/http"
-	"log"
+	"github.com/GeorgijGrigoriev/RapidFeed/internal/utils"
 	"log/slog"
 
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/db"
-	"github.com/GeorgijGrigoriev/RapidFeed/internal/feeder"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -27,21 +26,17 @@ func init() {
 
 	db.InitSchema() // maybe not necessary call it every time?
 
-	// Create default admin user
-	var adminExists bool
-	err := db.DB.QueryRow(`SELECT EXISTS(SELECT 1 FROM users WHERE username = 'admin')`).Scan(&adminExists)
-	if err != nil {
-		log.Fatal(err)
-	}
-	if !adminExists {
-		insertAdminQuery := `INSERT INTO users (username, password, role) VALUES ('admin', 'admin', 'admin')`
-		db.DB.Exec(insertAdminQuery)
-	}
+	db.CreateDefaultAdmin()
 
-	feeder.FetchAndSaveFeeds(feeds)
+	slog.Info("Database initialized")
+
+	//Load config vars from env with default fallback
+	utils.Listen = utils.GetStringEnv("LISTEN", ":8080")
+	utils.SecretKey = utils.GetStringEnv("SECRET_KEY", "strong-secret-key")
+	utils.RegisterAllowed = utils.GetBoolEnv("REGISTRATION_ALLOWED", true)
 }
 
 func main() {
 	slog.Info("Starting RapidFeed server")
-	http.New(feeds)
+	http.New()
 }

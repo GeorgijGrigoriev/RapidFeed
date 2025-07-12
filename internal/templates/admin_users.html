@@ -1,50 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Admin Users - RapidFeed</title>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f9;
-            color: #333;
-        }
-        header {
-            background: #2874A6;
-            color: white;
-            text-align: center;
-            padding: 1rem 0;
-        }
-        .container {
-            max-width: 800px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-        }
-        h1 {
-            font-size: 2em;
-            color: #2874A6;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 1.5rem;
-        }
-        th, td {
-            padding: 0.5rem;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-    </style>
-</head>
-<body>
-<header>
-    <h1 style="color: white">Admin Users - RapidFeed</h1>
-</header>
-
+{{ define "content" }}
 <div class="container">
-    <!-- Display list of users and their RSS feeds -->
+    <h1>Admin Users - RapidFeed</h1>
     <table>
         <thead>
             <tr>
@@ -54,10 +10,10 @@
             </tr>
         </thead>
         <tbody>
-            {{range .Users}}
+            {{range .UsersWithFeeds}}
             <tr>
-                <td>{{.Username}}</td>
-                <td>{{.Role}}</td>
+                <td>{{.User.Username}}</td>
+                <td>{{.User.Role}}</td>
                 <td>
                     <ul>
                         {{range .UserFeeds}}
@@ -70,5 +26,4 @@
         </tbody>
     </table>
 </div>
-</body>
-</html>
+{{ end }}

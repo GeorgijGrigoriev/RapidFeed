@@ -1,0 +1,21 @@
+{{- define "navbar" }}
+<nav class="navbar">
+    <div class="navbar-brand"><a href="/" style="text-decoration: none; color: white">RapidFeed</a></div>
+
+    {{if .User}}
+    <div class="navbar-nav">
+        {{if eq .User.Role "admin"}}
+        <a href="/admin/users">Admin Settings</a>
+        {{end}}
+        <a href="/settings">Settings</a>
+        <p>Logged in as: <b>{{.User.Username}}</b></p>
+        <form action="/logout" method="post">
+            <button type="submit">Logout</button>
+        </form>
+        {{else}}
+<!--        <a href="/login">Login</a> | <a href="/register">Register</a>-->
+    </div>
+    {{end}}
+
+</nav>
+{{-  end }}

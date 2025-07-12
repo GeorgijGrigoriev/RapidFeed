@@ -1,0 +1,16 @@
+{{- define "base" }}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{- .Title }}</title>
+    <link rel="stylesheet" href="/static/internal/static/style.css" />
+</head>
+<body>
+{{- template "navbar" . }}
+
+<div class="content">
+    {{- template "content" . }}
+</div>
+</body>
+</html>
+{{- end }}
