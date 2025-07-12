@@ -14,7 +14,7 @@ func FetchAndSaveFeeds(urls []string) {
 	for _, url := range urls {
 		slog.Info("[FEEDER]", "fetching feed", url)
 
-		source := extractSourceFromURL(url)
+		source := ExtractSourceFromURL(url)
 		fetchAndSaveFeed(url, source)
 	}
 }
@@ -46,7 +46,7 @@ func fetchAndSaveFeed(url, source string) {
 	}
 }
 
-func extractSourceFromURL(url string) string {
+func ExtractSourceFromURL(url string) string {
 	host := ""
 	if parsedURL, err := feedParser.ParseURL(url); err == nil && parsedURL.Title != "" {
 		host = parsedURL.Title

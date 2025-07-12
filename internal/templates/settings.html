@@ -10,7 +10,8 @@
 
     <ul>
         {{range .UserFeeds}}
-        <li>{{.FeedURL}} <form action="/settings" method="post" style="display:inline;">
+        <li><form action="/settings" method="post" sextractSourceFromURLtyle="display:inline;">
+            <p>{{ .Title }} - {{ .FeedURL }}</p>
             <input type="hidden" name="feed_id" value="{{.ID}}">
             <button type="submit">Delete</button>
         </form></li>

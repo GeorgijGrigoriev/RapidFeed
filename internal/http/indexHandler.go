@@ -1,6 +1,7 @@
 package http
 
 import (
+	"fmt"
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/db"
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/feeder"
 	"html/template"
@@ -42,9 +43,19 @@ func handler(tmpl *template.Template, w http.ResponseWriter, r *http.Request) {
 
 	offset := (page - 1) * perPage
 
-	joinedUrls := strings.Join(userFeeds, ",")
+	joinedUrls := "'" + strings.Join(userFeeds, "', '") + "'"
 
-	rows, err := db.DB.Query("SELECT COUNT(*) FROM feeds where feed_url IN (?)", joinedUrls)
+	fmt.Println(joinedUrls)
+
+	placeholders := strings.Repeat(",?", len(userFeeds))[1:]
+
+	query := fmt.Sprintf("SELECT COUNT(*) FROM feeds WHERE feed_url IN (%s)", placeholders)
+	args := make([]interface{}, len(userFeeds))
+	for i, u := range userFeeds {
+		args[i] = u
+	}
+
+	rows, err := db.DB.Query(query, args...)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -60,7 +71,16 @@ func handler(tmpl *template.Template, w http.ResponseWriter, r *http.Request) {
 
 	totalPages := int(math.Ceil(float64(totalCount) / float64(perPage)))
 
-	rows, err = db.DB.Query("SELECT title, link, date, source, description FROM feeds WHERE feed_url IN (?) ORDER BY date DESC LIMIT ? OFFSET ?", joinedUrls, perPage, offset)
+	argsWithPagination := make([]any, 0, len(userFeeds)+2)
+	for _, u := range userFeeds {
+		argsWithPagination = append(argsWithPagination, u)
+	}
+
+	// Добавляем параметры пагинации
+	argsWithPagination = append(argsWithPagination, perPage, offset)
+	query = fmt.Sprintf("SELECT title, link, date, source, description FROM feeds WHERE feed_url IN (%s) ORDER BY date DESC LIMIT ? OFFSET ?", placeholders)
+
+	rows, err = db.DB.Query(query, argsWithPagination...)
 	if err != nil {
 		log.Fatal(err)
 	}

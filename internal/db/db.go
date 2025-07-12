@@ -50,7 +50,7 @@ func GetUserRole(userID int) (string, error) {
 func GetUserFeeds(userID int) ([]models.UserFeed, error) {
 	var userFeeds []models.UserFeed
 
-	rows, err := DB.Query(`SELECT id, feed_url FROM user_feeds WHERE user_id = ?`, userID)
+	rows, err := DB.Query(`SELECT id, feed_url, title FROM user_feeds WHERE user_id = ?`, userID)
 	if err != nil {
 		slog.Error("failed to get user feeds", "userID", userID)
 
@@ -60,7 +60,7 @@ func GetUserFeeds(userID int) ([]models.UserFeed, error) {
 
 	for rows.Next() {
 		var feed models.UserFeed
-		err := rows.Scan(&feed.ID, &feed.FeedURL)
+		err := rows.Scan(&feed.ID, &feed.FeedURL, &feed.Title)
 		if err != nil {
 			slog.Error("failed to scan user feed rows", "userID", userID)
 
@@ -135,7 +135,7 @@ func GetUsersWithFeeds() ([]models.UserWithFeeds, error) {
 	for _, user := range users {
 		var userFeeds []models.UserFeed
 
-		rows, err := DB.Query(`SELECT id, feed_url FROM user_feeds WHERE user_id = ?`, user.ID)
+		rows, err := DB.Query(`SELECT id, feed_url, title FROM user_feeds WHERE user_id = ?`, user.ID)
 		if err != nil {
 			slog.Error("failed to get user feeds", "user", user)
 
@@ -145,7 +145,7 @@ func GetUsersWithFeeds() ([]models.UserWithFeeds, error) {
 
 		for rows.Next() {
 			var feed models.UserFeed
-			err := rows.Scan(&feed.ID, &feed.FeedURL)
+			err := rows.Scan(&feed.ID, &feed.FeedURL, &feed.Title)
 			if err != nil {
 				slog.Error("failed to scan user feed rows", "user", user)
 

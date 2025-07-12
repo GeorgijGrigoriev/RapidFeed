@@ -1,12 +1,11 @@
 package http
 
 import (
+	"net/http"
+
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/db"
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/feeder"
-	"net/http"
 )
-
-var adminUsersTemplate = prepareHTMLTemplate("admin_users")
 
 func userSettingsHandler(w http.ResponseWriter, r *http.Request) {
 	userID, err := checkSession(r)
@@ -52,9 +51,11 @@ func userSettingsHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		} else {
-			// Handle add
 			feedURL := r.FormValue("feed_url")
-			_, err := db.DB.Exec(`INSERT INTO user_feeds (user_id, feed_url) VALUES (?, ?)`, userID, feedURL)
+
+			feedTitle := feeder.ExtractSourceFromURL(feedURL)
+
+			_, err := db.DB.Exec(`INSERT INTO user_feeds (user_id, feed_url, title) VALUES (?, ?, ?)`, userID, feedURL, feedTitle)
 			if err != nil {
 				http.Error(w, "Failed to add RSS feed", http.StatusInternalServerError)
 				return

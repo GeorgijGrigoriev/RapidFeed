@@ -1,9 +1,10 @@
 package http
 
 import (
-	"github.com/GeorgijGrigoriev/RapidFeed/internal/db"
 	"log/slog"
 	"net/http"
+
+	"github.com/GeorgijGrigoriev/RapidFeed/internal/db"
 )
 
 func adminSettingsHandler(w http.ResponseWriter, r *http.Request) {
