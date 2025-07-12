@@ -1,11 +1,12 @@
 package http
 
 import (
+	"github.com/GeorgijGrigoriev/RapidFeed"
 	"html/template"
 )
 
 func PrepareTemplate(name ...string) *template.Template {
-	return template.Must(template.New("").Funcs(template.FuncMap{
+	tmpl := template.New("").Funcs(template.FuncMap{
 		"sub": func(a, b int) int { return a - b },
 		"add": func(a, b int) int { return a + b },
 		"seq": func(start, end int) []int {
@@ -30,5 +31,12 @@ func PrepareTemplate(name ...string) *template.Template {
 			}
 			return a
 		},
-	}).ParseFiles(name...))
+	})
+
+	tmpl, err := tmpl.ParseFS(RapidFeed.HTMLTemplates, name...)
+	if err != nil {
+		panic(err)
+	}
+
+	return tmpl
 }

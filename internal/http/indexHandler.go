@@ -14,6 +14,14 @@ import (
 )
 
 func handler(tmpl *template.Template, w http.ResponseWriter, r *http.Request) {
+	var (
+		items      []feeder.FeedItem
+		page       int
+		perPage    int
+		totalPages int
+		totalCount int
+	)
+
 	userID, err := checkSession(r)
 	if err != nil {
 		forbiddenHandler(w, r)
@@ -27,76 +35,70 @@ func handler(tmpl *template.Template, w http.ResponseWriter, r *http.Request) {
 
 		return
 	}
+	if len(userFeeds) > 0 {
+		pageStr := r.URL.Query().Get("page")
+		perPageStr := r.URL.Query().Get("per_page")
 
-	pageStr := r.URL.Query().Get("page")
-	perPageStr := r.URL.Query().Get("per_page")
+		page, err = strconv.Atoi(pageStr)
+		if err != nil || page < 1 {
+			page = 1
+		}
 
-	page, err := strconv.Atoi(pageStr)
-	if err != nil || page < 1 {
-		page = 1
-	}
+		perPage, err = strconv.Atoi(perPageStr)
+		if err != nil || perPage < 1 {
+			perPage = 10
+		}
 
-	perPage, err := strconv.Atoi(perPageStr)
-	if err != nil || perPage < 1 {
-		perPage = 10
-	}
+		offset := (page - 1) * perPage
 
-	offset := (page - 1) * perPage
+		placeholders := strings.Repeat(",?", len(userFeeds))[1:]
 
-	joinedUrls := "'" + strings.Join(userFeeds, "', '") + "'"
+		query := fmt.Sprintf("SELECT COUNT(*) FROM feeds WHERE feed_url IN (%s)", placeholders)
+		args := make([]interface{}, len(userFeeds))
+		for i, u := range userFeeds {
+			args[i] = u
+		}
 
-	fmt.Println(joinedUrls)
-
-	placeholders := strings.Repeat(",?", len(userFeeds))[1:]
-
-	query := fmt.Sprintf("SELECT COUNT(*) FROM feeds WHERE feed_url IN (%s)", placeholders)
-	args := make([]interface{}, len(userFeeds))
-	for i, u := range userFeeds {
-		args[i] = u
-	}
-
-	rows, err := db.DB.Query(query, args...)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer rows.Close()
-
-	var totalCount int
-	for rows.Next() {
-		err := rows.Scan(&totalCount)
+		rows, err := db.DB.Query(query, args...)
 		if err != nil {
 			log.Fatal(err)
 		}
-	}
+		defer rows.Close()
 
-	totalPages := int(math.Ceil(float64(totalCount) / float64(perPage)))
+		for rows.Next() {
+			err := rows.Scan(&totalCount)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
 
-	argsWithPagination := make([]any, 0, len(userFeeds)+2)
-	for _, u := range userFeeds {
-		argsWithPagination = append(argsWithPagination, u)
-	}
+		totalPages = int(math.Ceil(float64(totalCount) / float64(perPage)))
 
-	// Добавляем параметры пагинации
-	argsWithPagination = append(argsWithPagination, perPage, offset)
-	query = fmt.Sprintf("SELECT title, link, date, source, description FROM feeds WHERE feed_url IN (%s) ORDER BY date DESC LIMIT ? OFFSET ?", placeholders)
+		argsWithPagination := make([]any, 0, len(userFeeds)+2)
+		for _, u := range userFeeds {
+			argsWithPagination = append(argsWithPagination, u)
+		}
 
-	rows, err = db.DB.Query(query, argsWithPagination...)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer rows.Close()
+		// Добавляем параметры пагинации
+		argsWithPagination = append(argsWithPagination, perPage, offset)
+		query = fmt.Sprintf("SELECT title, link, date, source, description FROM feeds WHERE feed_url IN (%s) ORDER BY date DESC LIMIT ? OFFSET ?", placeholders)
 
-	var items []feeder.FeedItem
-	for rows.Next() {
-		var item feeder.FeedItem
-		err := rows.Scan(&item.Title, &item.Link, &item.Date, &item.Source, &item.Description)
+		rows, err = db.DB.Query(query, argsWithPagination...)
 		if err != nil {
 			log.Fatal(err)
 		}
+		defer rows.Close()
 
-		items = append(items, item)
+		for rows.Next() {
+			var item feeder.FeedItem
+			err := rows.Scan(&item.Title, &item.Link, &item.Date, &item.Source, &item.Description)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			items = append(items, item)
+		}
 	}
-
 	paginatedItems := feeder.PaginatedFeedItems{
 		Items:      items,
 		Page:       page,
