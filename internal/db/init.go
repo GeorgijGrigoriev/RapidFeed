@@ -1,6 +1,7 @@
 package db
 
 import (
+	"github.com/GeorgijGrigoriev/RapidFeed/internal/auth"
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/utils"
 	"log"
 	"log/slog"
@@ -17,6 +18,7 @@ func InitSchema() {
 		"description" TEXT,
         "feed_url" TEXT
     )`
+
 	_, err := DB.Exec(createTableQuery)
 	if err != nil {
 		slog.Error("failed to create feeds table", "error", err)
@@ -45,6 +47,7 @@ func InitSchema() {
         "category" TEXT,
         FOREIGN KEY("user_id") REFERENCES users("id")
     )`
+
 	_, err = DB.Exec(createUserFeedsTableQuery)
 	if err != nil {
 		slog.Error("failed to create user_feeds table", "error", err)
@@ -55,17 +58,26 @@ func InitSchema() {
 
 func CreateDefaultAdmin() {
 	var adminExists bool
+
 	err := DB.QueryRow(`SELECT EXISTS(SELECT 1 FROM users WHERE username = 'admin')`).Scan(&adminExists)
 	if err != nil {
 		log.Fatal(err)
 	}
-	if !adminExists {
-		insertAdminQuery := `INSERT INTO users (username, password, role) VALUES ('admin', ? , 'admin')`
-		_, err = DB.Exec(insertAdminQuery, utils.GetStringEnv("ADMIN_PASSWORD", "admin"))
-		if err != nil {
-			slog.Error("failed to create default admin", "error", err)
-		}
+
+	encryptedPass, err := auth.HashPassword(utils.GetStringEnv("ADMIN_PASSWORD", "admin"))
+	if err != nil {
+		slog.Error("failed to hash default admin password", "error", err)
 
 		os.Exit(1)
+	}
+
+	if !adminExists {
+		insertAdminQuery := `INSERT INTO users (username, password, role) VALUES ('admin', ? , 'admin')`
+		_, err = DB.Exec(insertAdminQuery, encryptedPass)
+		if err != nil {
+			slog.Error("failed to create default admin", "error", err)
+
+			os.Exit(1)
+		}
 	}
 }

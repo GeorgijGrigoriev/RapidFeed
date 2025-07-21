@@ -50,3 +50,22 @@ func internalServerErrorHandler(w http.ResponseWriter, r *http.Request, err erro
 		slog.Error("can't execute template", "error", execErr)
 	}
 }
+
+func invalidCredentialsHandler(w http.ResponseWriter, r *http.Request) {
+	tmpl := PrepareTemplate("internal/templates/error.html",
+		"internal/templates/base.html",
+		"internal/templates/navbar.html")
+
+	data := errorPage{
+		Status:  "401",
+		Title:   "Invalid Credentials",
+		Error:   nil,
+		Message: "Bad username or password, please try again",
+		User:    nil,
+	}
+
+	execErr := tmpl.ExecuteTemplate(w, "base", data)
+	if execErr != nil {
+		slog.Error("can't execute template", "error", execErr)
+	}
+}

@@ -3,6 +3,7 @@ package http
 import (
 	"fmt"
 	"github.com/GeorgijGrigoriev/RapidFeed"
+	"github.com/GeorgijGrigoriev/RapidFeed/internal/auth"
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/db"
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/utils"
 	"html/template"
@@ -27,10 +28,38 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		username := r.FormValue("username")
 		password := r.FormValue("password")
 
-		var userID int
-		err := db.DB.QueryRow(`SELECT id FROM users WHERE username = ? AND password = ?`, username, password).Scan(&userID)
+		if username == "" || password == "" {
+			slog.Error("username or password is empty")
+
+			internalServerErrorHandler(w, r, fmt.Errorf("username or pasword is empty but required"))
+
+			return
+		}
+
+		storedHash, err := db.GetUserHash(username)
 		if err != nil {
-			http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+			slog.Error("username not found", "error", err)
+
+			invalidCredentialsHandler(w, r)
+
+			return
+		}
+
+		err = auth.CheckPassword(storedHash, password)
+		if err != nil {
+			slog.Error("invalid password", "error", err)
+
+			invalidCredentialsHandler(w, r)
+
+			return
+		}
+
+		var userID int
+		err = db.DB.QueryRow(`SELECT id FROM users WHERE username = ?`, username).Scan(&userID)
+		if err != nil {
+
+			invalidCredentialsHandler(w, r)
+
 			return
 		}
 
@@ -45,16 +74,17 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			slog.Error("session save error", "error", err)
 
-			http.Error(w, "Failed to save session", http.StatusInternalServerError)
+			internalServerErrorHandler(w, r, fmt.Errorf("failed to save session"))
 
 			return
 		}
 
-		http.Redirect(w, r, "/", http.StatusFound) // Redirect to the main page after successful login
+		http.Redirect(w, r, "/", http.StatusFound)
 	} else {
 		data := map[string]interface{}{
 			"RegisterAllowed": utils.RegisterAllowed,
 		}
+
 		loginTemplate.Execute(w, data)
 	}
 }
@@ -64,11 +94,28 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		username := r.FormValue("username")
 		password := r.FormValue("password")
 
-		_, err := db.DB.Exec(`INSERT INTO users (username, password, role) VALUES (?, ?, 'user')`, username, password)
+		if username == "" || password == "" {
+			slog.Error("username or password is empty")
+
+			internalServerErrorHandler(w, r, fmt.Errorf("username or pasword is empty but required"))
+
+			return
+		}
+
+		hash, err := auth.HashPassword(password)
+		if err != nil {
+			slog.Error("hashing error", "error", err)
+
+			internalServerErrorHandler(w, r, fmt.Errorf("failed to create user"))
+
+			return
+		}
+
+		_, err = db.DB.Exec(`INSERT INTO users (username, password, role) VALUES (?, ?, 'user')`, username, hash)
 		if err != nil {
 			slog.Error("new user failed", "error", err)
 
-			http.Error(w, "Failed to register user", http.StatusInternalServerError)
+			internalServerErrorHandler(w, r, fmt.Errorf("failed to create user"))
 
 			return
 		}
@@ -82,9 +129,15 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, utils.SecretKey)
 	session.Options.MaxAge = -1
+
 	err := session.Save(r, w)
 	if err != nil {
 		slog.Error("failed to invalidate session", "error", err)
+
+		internalServerErrorHandler(w, r, fmt.Errorf("failed to invalidate session"))
+
+		return
 	}
+
 	http.Redirect(w, r, "/login", http.StatusFound)
 }

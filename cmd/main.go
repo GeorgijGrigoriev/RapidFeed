@@ -18,6 +18,11 @@ var feeds = []string{
 func init() {
 	slog.Info("Initializing RapidFeed")
 
+	// Load config vars from env with default fallback
+	utils.Listen = utils.GetStringEnv("LISTEN", ":8080")
+	utils.SecretKey = utils.GetStringEnv("SECRET_KEY", "strong-secretkey")
+	utils.RegisterAllowed = utils.GetBoolEnv("REGISTRATION_ALLOWED", true)
+
 	slog.Info("Try to open database")
 
 	db.InitDB()
@@ -29,11 +34,6 @@ func init() {
 	db.CreateDefaultAdmin()
 
 	slog.Info("Database initialized")
-
-	//Load config vars from env with default fallback
-	utils.Listen = utils.GetStringEnv("LISTEN", ":8080")
-	utils.SecretKey = utils.GetStringEnv("SECRET_KEY", "strong-secret-key")
-	utils.RegisterAllowed = utils.GetBoolEnv("REGISTRATION_ALLOWED", true)
 }
 
 func main() {

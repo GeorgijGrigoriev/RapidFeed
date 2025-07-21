@@ -17,8 +17,6 @@ func AuthMiddleware(next http.HandlerFunc) http.Handler {
 
 		userID, ok := session.Values["user_id"].(int)
 
-		slog.Info("checksess", "user", userID, "ok", ok)
-
 		if !ok || userID == 0 {
 			http.Redirect(w, r, "/login", http.StatusFound)
 			return
