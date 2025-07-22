@@ -3,7 +3,7 @@
 <div class="container">
     <div class="control-panel">
         <form action="/refresh" method="post">
-            <button type="submit">Refresh Feed</button>
+            <button type="submit"><img width="24" height="24" src="/static/internal/static/refresh-cw.svg"></button>
         </form>
         <form action="/" method="get">
             <label for="per_page">Items per page:</label>
@@ -21,8 +21,8 @@
 
     <div class="pagination">
         {{if gt .PaginatedItems.Page 1}}
-        <a href="?page=1&per_page={{.PaginatedItems.PerPage}}">First</a>
-        <a href="?page={{sub .PaginatedItems.Page 1}}&per_page={{.PaginatedItems.PerPage}}">Previous</a>
+        <a href="?page=1&per_page={{.PaginatedItems.PerPage}}"><<</a>
+        <a href="?page={{sub .PaginatedItems.Page 1}}&per_page={{.PaginatedItems.PerPage}}"><</a>
         {{end}}
 
         {{range $i := seq (max 1 (sub .PaginatedItems.Page 2)) (min .PaginatedItems.TotalPages (add .PaginatedItems.Page 2))}}
@@ -30,16 +30,16 @@
         {{end}}
 
         {{if lt .PaginatedItems.Page .PaginatedItems.TotalPages}}
-        <a href="?page={{add .PaginatedItems.Page 1}}&per_page={{.PaginatedItems.PerPage}}">Next</a>
-        <a href="?page={{.PaginatedItems.TotalPages}}&per_page={{.PaginatedItems.PerPage}}">Last</a>
+        <a href="?page={{add .PaginatedItems.Page 1}}&per_page={{.PaginatedItems.PerPage}}">></a>
+        <a href="?page={{.PaginatedItems.TotalPages}}&per_page={{.PaginatedItems.PerPage}}">>></a>
         {{end}}
 
         <a>Total Items: {{ .PaginatedItems.TotalItems }}</a>
     </div>
 
-    <ul>
+    <ul class="feed-card">
         {{range .PaginatedItems.Items}}
-        <li>
+        <li class="feed-card-item">
             <a href="{{.Link}}">{{.Title}}</a><br>
             {{if .Description}}
             <p>{{.Description}}</p>
@@ -51,8 +51,8 @@
 
     <div class="pagination">
         {{if gt .PaginatedItems.Page 1}}
-        <a href="?page=1&per_page={{.PaginatedItems.PerPage}}">First</a>
-        <a href="?page={{sub .PaginatedItems.Page 1}}&per_page={{.PaginatedItems.PerPage}}">Previous</a>
+        <a href="?page=1&per_page={{.PaginatedItems.PerPage}}"><<</a>
+        <a href="?page={{sub .PaginatedItems.Page 1}}&per_page={{.PaginatedItems.PerPage}}"><</a>
         {{end}}
 
         {{range $i := seq (max 1 (sub .PaginatedItems.Page 2)) (min .PaginatedItems.TotalPages (add .PaginatedItems.Page 2))}}
@@ -60,8 +60,8 @@
         {{end}}
 
         {{if lt .PaginatedItems.Page .PaginatedItems.TotalPages}}
-        <a href="?page={{add .PaginatedItems.Page 1}}&per_page={{.PaginatedItems.PerPage}}">Next</a>
-        <a href="?page={{.PaginatedItems.TotalPages}}&per_page={{.PaginatedItems.PerPage}}">Last</a>
+        <a href="?page={{add .PaginatedItems.Page 1}}&per_page={{.PaginatedItems.PerPage}}">></a>
+        <a href="?page={{.PaginatedItems.TotalPages}}&per_page={{.PaginatedItems.PerPage}}">>></a>
         {{end}}
     </div>
 </div>
