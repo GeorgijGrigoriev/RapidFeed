@@ -72,7 +72,14 @@ func CreateDefaultAdmin() {
 		log.Fatal(err)
 	}
 
-	encryptedPass, err := auth.HashPassword(utils.GetStringEnv("ADMIN_PASSWORD", "admin"))
+	adminPass, err := auth.GeneratePassword(14)
+	if err != nil {
+		slog.Error("failed to generate password for admin", "error", err)
+
+		os.Exit(1)
+	}
+
+	encryptedPass, err := auth.HashPassword(utils.GetStringEnv("ADMIN_PASSWORD", adminPass))
 	if err != nil {
 		slog.Error("failed to hash default admin password", "error", err)
 
@@ -87,5 +94,9 @@ func CreateDefaultAdmin() {
 
 			os.Exit(1)
 		}
+		slog.Info("!!!!!!!!!!")
+		slog.Info("created default admin", "password", adminPass)
+		slog.Info("this password shown only this time, keep it in safe place")
+		slog.Info("!!!!!!!!!!")
 	}
 }
