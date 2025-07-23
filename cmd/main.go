@@ -16,7 +16,7 @@ var feeds = []string{
 }
 
 func init() {
-	slog.Info("Initializing RapidFeed")
+	slog.Info("Initializing RapidFeed", "version", "1.0.0")
 
 	// Load config vars from env with default fallback
 	utils.Listen = utils.GetStringEnv("LISTEN", ":8080")

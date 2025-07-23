@@ -1,9 +1,12 @@
 package http
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
+	"strconv"
 
+	"github.com/GeorgijGrigoriev/RapidFeed/internal/auth"
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/db"
 )
 
@@ -45,6 +48,86 @@ func adminSettingsHandler(w http.ResponseWriter, r *http.Request) {
 		if execErr != nil {
 			slog.Error("failed to execute template", "error", execErr)
 		}
+	case http.MethodPost:
+		username := r.FormValue("username")
+		password := r.FormValue("password")
+		role := r.FormValue("role")
+
+		if username != "" && password != "" && role != "" {
+			hashedPassword, err := auth.HashPassword(password)
+			if err != nil {
+				slog.Error("failed to hash password", "error", err)
+
+				internalServerErrorHandler(w, r, err)
+
+				return
+			}
+
+			_, err = db.DB.Exec(`INSERT INTO users (username, password, role) VALUES (?, ?, ?)`, username, hashedPassword, role)
+			if err != nil {
+				slog.Error("failed to create new user", "error", err)
+
+				internalServerErrorHandler(w, r, nil)
+
+				return
+			}
+
+			http.Redirect(w, r, "/admin/users", http.StatusFound)
+
+			return
+		}
+
+		blockUserID := r.FormValue("block_user_id")
+		if blockUserID != "" {
+			userID, err := strconv.Atoi(blockUserID)
+			if err != nil {
+				slog.Error("invalid user ID for blocking", "error", err)
+
+				internalServerErrorHandler(w, r, fmt.Errorf("invalid user ID"))
+
+				return
+			}
+
+			_, err = db.DB.Exec(`UPDATE users SET role = 'blocked' WHERE id = ?`, userID)
+			if err != nil {
+				slog.Error("failed to block user", "error", err)
+
+				internalServerErrorHandler(w, r, err)
+
+				return
+			}
+
+			http.Redirect(w, r, "/admin/users", http.StatusFound)
+
+			return
+		}
+
+		deleteFeedID := r.FormValue("delete_feed_id")
+		if deleteFeedID != "" {
+			feedID, err := strconv.Atoi(deleteFeedID)
+			if err != nil {
+				slog.Error("invalid feed ID for deletion", "error", err)
+
+				http.Error(w, "Invalid feed ID", http.StatusBadRequest)
+
+				return
+			}
+
+			_, err = db.DB.Exec(`DELETE FROM user_feeds WHERE id = ?`, feedID)
+			if err != nil {
+				slog.Error("failed to delete user feed", "error", err)
+
+				http.Error(w, "Failed to delete user feed", http.StatusInternalServerError)
+
+				return
+			}
+
+			http.Redirect(w, r, "/admin/users", http.StatusFound)
+
+			return
+		}
+
+		http.Error(w, "Invalid request", http.StatusBadRequest)
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}

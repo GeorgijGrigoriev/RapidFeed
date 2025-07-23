@@ -4,36 +4,7 @@ body {
     padding: 0;
     background-color: #f4f4f9;
     color: #333;
-}
-
-.navbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #2874A6;
-    padding: 1rem;
-    color: white;
-}
-
-.navbar-brand {
-    font-size: 1.5em;
-    margin-left: 1rem;
-}
-
-.navbar-nav {
-    display: flex;
-    align-items: center;
-}
-
-.navbar-nav a {
-    color: white;
-    text-decoration: none;
-    margin: 0 1rem;
-    font-size: 1em;
-}
-
-.navbar-nav a:hover {
-    text-decoration: underline;
+    font-size: 18px;
 }
 
 .container {
@@ -59,31 +30,12 @@ h3 {
     align-items: center;
 }
 
-button, select {
-    background-color: #2874A6;
-    border: none;
-    padding: 0.7rem 1.4rem;
-    color: white;
-    font-size: 1em;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-button:hover, select:hover {
-    background-color: #1B4F72;
-}
-
-select {
-    appearance: none;
-    margin-left: 1rem;
-}
-
-ul {
+.feed-card {
     list-style-type: none;
     padding-left: 0;
 }
 
-li {
+.feed-card-item {
     background: white;
     margin-bottom: 1rem;
     padding: 1rem;
@@ -91,13 +43,13 @@ li {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-li a {
+.feed-card-item a {
     text-decoration: none;
     color: #2874A6;
     font-weight: bold;
 }
 
-li a:hover {
+.feed-card-item a:hover {
     text-decoration: underline;
 }
 
@@ -192,4 +144,48 @@ pre {
     margin-top: 1rem;
     font-size: 0.9rem;
     white-space: pre-wrap;
+}
+
+.home-menu {
+    padding: 0.5em;
+    text-align: center;
+    box-shadow: 0 1px 1px rgba(0,0,0, 0.10);
+}
+.home-menu {
+    background: #2d3e50;
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+.pure-menu.pure-menu-fixed {
+    border-bottom: none;
+    z-index: 4;
+}
+
+.pure-menu-item {
+    vertical-align: unset!important;
+}
+
+.home-menu .pure-menu-heading {
+    color: white;
+    font-weight: 400;
+    font-size: 140%;
+}
+
+.home-menu .pure-menu-selected a {
+    color: white;
+}
+
+.home-menu a {
+    color: #6FBEF3;
+}
+.home-menu li a:hover,
+.home-menu li a:focus {
+    background: none;
+    border: none;
+    color: #AECFE5;
+}
+
+.button-warning {
+    background: rgb(223, 117, 20);
 }

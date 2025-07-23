@@ -1,21 +1,29 @@
 {{- define "navbar" }}
-<nav class="navbar">
-    <div class="navbar-brand"><a href="/" style="text-decoration: none; color: white">RapidFeed</a></div>
-
-    {{if .User}}
-    <div class="navbar-nav">
-        {{if eq .User.Role "admin"}}
-        <a href="/admin/users">Admin Settings</a>
-        {{end}}
-        <a href="/settings">Settings</a>
-        <p>Logged in as: <b>{{.User.Username}}</b></p>
-        <form action="/logout" method="post">
-            <button type="submit">Logout</button>
-        </form>
-        {{else}}
-<!--        <a href="/login">Login</a> | <a href="/register">Register</a>-->
+<div>
+    <div class="pure-g">
+        <div class="home-menu pure-menu pure-menu-horizontal">
+            <a href="/" class="pure-menu-heading">RapidFeed</a>
+            {{if .User}}
+            <ul class="pure-menu-list">
+                {{if eq .User.Role "admin"}}
+                <li class="pure-menu-item">
+                    <a href="/admin/users" class="pure-menu-link">Admin Settings</a>
+                </li>
+                {{end}}
+                <li class="pure-menu-item">
+                    <a href="/settings" class="pure-menu-link">Settings</a>
+                </li>
+                <li class="pure-menu-item">
+                    <p style="color: white;">Logged in as: <b>{{.User.Username}}</b></p>
+                </li>
+                <li class="pure-menu-item">
+                    <a href="/logout" class="pure-menu-link">Logout</a>
+                </li>
+                {{else}}
+                <!--        <a href="/login">Login</a> | <a href="/register">Register</a>-->
+            </ul>
+            {{end}}
+        </div>
     </div>
-    {{end}}
-
-</nav>
+</div>
 {{-  end }}

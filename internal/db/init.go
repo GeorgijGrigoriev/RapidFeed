@@ -13,7 +13,7 @@ func InitSchema() {
         "id" INTEGER PRIMARY KEY AUTOINCREMENT,
         "title" TEXT,
         "link" TEXT,
-        "date" TEXT,
+        "date" TIMESTAMP,
         "source" TEXT,
 		"description" TEXT,
         "feed_url" TEXT
@@ -30,7 +30,7 @@ func InitSchema() {
         "id" INTEGER PRIMARY KEY AUTOINCREMENT,
         "username" TEXT UNIQUE,
         "password" TEXT,
-        "role" TEXT CHECK( role IN ('user', 'admin') )
+        "role" TEXT CHECK( role IN ('user', 'admin', 'blocked') )
     )`
 	_, err = DB.Exec(createUsersTableQuery)
 	if err != nil {
@@ -51,6 +51,14 @@ func InitSchema() {
 	_, err = DB.Exec(createUserFeedsTableQuery)
 	if err != nil {
 		slog.Error("failed to create user_feeds table", "error", err)
+
+		os.Exit(1)
+	}
+
+	createFeedLinkDateIndex := `CREATE INDEX IF NOT EXISTS idx_feeds_link_feedurl_date ON feeds (link, feed_url, date);`
+	_, err = DB.Exec(createFeedLinkDateIndex)
+	if err != nil {
+		slog.Error("failed to create feed_link_date index", "error", err)
 
 		os.Exit(1)
 	}
