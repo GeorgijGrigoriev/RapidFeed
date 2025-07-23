@@ -6,6 +6,7 @@ import (
 	"log"
 	"log/slog"
 	"regexp"
+	"time"
 )
 
 var feedParser = gofeed.NewParser()
@@ -36,9 +37,12 @@ func fetchAndSaveFeed(url, source string) {
 
 			continue
 		}
+
 		if !exists {
-			date := item.PublishedParsed.Format("2006-01-02 15:04:05")
-			insertQuery := `INSERT OR IGNORE INTO feeds (title, link, date, source, description, feed_url) VALUES (?, ?, ?, ?, ?, ?)`
+			date := item.PublishedParsed.Format(time.RFC3339)
+
+			insertQuery := `INSERT INTO feeds (title, link, date, source, description, feed_url) VALUES (?, ?, ?, ?, ?, ?)`
+
 			_, err := db.DB.Exec(insertQuery, item.Title, item.Link, date, source, cleanHTMLTags(item.Description), url)
 			if err != nil {
 				slog.Error("Error inserting new item in feed:", err)

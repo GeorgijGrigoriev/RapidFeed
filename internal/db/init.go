@@ -54,6 +54,14 @@ func InitSchema() {
 
 		os.Exit(1)
 	}
+
+	createFeedLinkDateIndex := `CREATE INDEX IF NOT EXISTS idx_feeds_link_feedurl_date ON feeds (link, feed_url, date);`
+	_, err = DB.Exec(createFeedLinkDateIndex)
+	if err != nil {
+		slog.Error("failed to create feed_link_date index", "error", err)
+
+		os.Exit(1)
+	}
 }
 
 func CreateDefaultAdmin() {
