@@ -36,6 +36,21 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		blocked, err := db.CheckUserBlocked(username)
+		if err != nil {
+			slog.Error("username blocked check failed", "username", username, "error", err)
+
+			invalidCredentialsHandler(w, r)
+
+			return
+		}
+
+		if blocked {
+			forbiddenHandler(w, r)
+
+			return
+		}
+
 		storedHash, err := db.GetUserHash(username)
 		if err != nil {
 			slog.Error("username not found", "error", err)

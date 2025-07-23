@@ -1,6 +1,7 @@
 package http
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/db"
@@ -53,9 +54,26 @@ func userSettingsHandler(w http.ResponseWriter, r *http.Request) {
 		} else {
 			feedURL := r.FormValue("feed_url")
 
+			feeds, err := db.GetUserFeeds(userID)
+			if err != nil {
+				internalServerErrorHandler(w, r, err)
+
+				return
+			}
+
+			for _, feed := range feeds {
+				if feed.FeedURL == feedURL {
+					slog.Info("User feed already exists", "userID", userID, "feed url", feedURL)
+
+					http.Redirect(w, r, "/settings", http.StatusFound)
+
+					return
+				}
+			}
+
 			feedTitle := feeder.ExtractSourceFromURL(feedURL)
 
-			_, err := db.DB.Exec(`INSERT INTO user_feeds (user_id, feed_url, title) VALUES (?, ?, ?)`, userID, feedURL, feedTitle)
+			_, err = db.DB.Exec(`INSERT INTO user_feeds (user_id, feed_url, title) VALUES (?, ?, ?)`, userID, feedURL, feedTitle)
 			if err != nil {
 				http.Error(w, "Failed to add RSS feed", http.StatusInternalServerError)
 				return

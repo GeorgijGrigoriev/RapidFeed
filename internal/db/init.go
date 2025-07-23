@@ -30,7 +30,7 @@ func InitSchema() {
         "id" INTEGER PRIMARY KEY AUTOINCREMENT,
         "username" TEXT UNIQUE,
         "password" TEXT,
-        "role" TEXT CHECK( role IN ('user', 'admin') )
+        "role" TEXT CHECK( role IN ('user', 'admin', 'blocked') )
     )`
 	_, err = DB.Exec(createUsersTableQuery)
 	if err != nil {

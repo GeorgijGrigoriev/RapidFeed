@@ -1,30 +1,29 @@
 {{- define "navbar" }}
-<div class="header">
-    <div class="home-menu pure-menu pure-menu-horizontal">
-        <a href="/" class="pure-menu-heading">RapidFeed</a>
-
-        {{if .User}}
-        <ul class="pure-menu-list">
-            {{if eq .User.Role "admin"}}
-            <li class="pure-menu-item">
-                <a href="/admin/users" class="pure-menu-link">Admin Settings</a>
-            </li>
+<div>
+    <div class="pure-g">
+        <div class="home-menu pure-menu pure-menu-horizontal">
+            <a href="/" class="pure-menu-heading">RapidFeed</a>
+            {{if .User}}
+            <ul class="pure-menu-list">
+                {{if eq .User.Role "admin"}}
+                <li class="pure-menu-item">
+                    <a href="/admin/users" class="pure-menu-link">Admin Settings</a>
+                </li>
+                {{end}}
+                <li class="pure-menu-item">
+                    <a href="/settings" class="pure-menu-link">Settings</a>
+                </li>
+                <li class="pure-menu-item">
+                    <p style="color: white;">Logged in as: <b>{{.User.Username}}</b></p>
+                </li>
+                <li class="pure-menu-item">
+                    <a href="/logout" class="pure-menu-link">Logout</a>
+                </li>
+                {{else}}
+                <!--        <a href="/login">Login</a> | <a href="/register">Register</a>-->
+            </ul>
             {{end}}
-            <li class="pure-menu-item">
-                <a href="/settings" class="pure-menu-link">Settings</a>
-            </li>
-            <li class="pure-menu-item">
-                <p>Logged in as: <b>{{.User.Username}}</b></p>
-            </li>
-            <li class="pure-menu-item">
-                <form action="/logout" method="post">
-                    <button type="submit" class="pure-menu-link">Logout</button>
-                </form>
-            </li>
-            {{else}}
-            <!--        <a href="/login">Login</a> | <a href="/register">Register</a>-->
-        </ul>
-        {{end}}
+        </div>
     </div>
 </div>
 {{-  end }}

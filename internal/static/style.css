@@ -153,16 +153,23 @@ pre {
 }
 .home-menu {
     background: #2d3e50;
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
 }
 .pure-menu.pure-menu-fixed {
     border-bottom: none;
     z-index: 4;
 }
 
+.pure-menu-item {
+    vertical-align: unset!important;
+}
+
 .home-menu .pure-menu-heading {
     color: white;
     font-weight: 400;
-    font-size: 120%;
+    font-size: 140%;
 }
 
 .home-menu .pure-menu-selected a {
@@ -177,4 +184,8 @@ pre {
     background: none;
     border: none;
     color: #AECFE5;
+}
+
+.button-warning {
+    background: rgb(223, 117, 20);
 }

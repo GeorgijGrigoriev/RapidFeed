@@ -15,7 +15,7 @@
                 <option value="admin">Admin</option>
             </select>
 
-            <button type="submit">Add User</button>
+            <button class="pure-button" type="submit">Add User</button>
         </form>
 
         <br/>
@@ -44,7 +44,7 @@
                             {{ .Title }} - {{.FeedURL}}
                             <form action="/admin/users" method="post" style="display:inline;">
                                 <input type="hidden" name="delete_feed_id" value="{{.ID}}">
-                                <button type="submit">Delete Feed</button>
+                                <button class="button-warning pure-button" type="submit">Delete Feed</button>
                             </form>
                         </li>
                         {{end}}
@@ -54,7 +54,7 @@
                     {{if ne .User.Role "blocked"}}
                     <form action="/admin/users" method="post" style="display:inline;">
                         <input type="hidden" name="block_user_id" value="{{.User.ID}}">
-                        <button type="submit">Block User</button>
+                        <button class="button-warning pure-button" type="submit">Block User</button>
                     </form>
                     {{end}}
                 </td>

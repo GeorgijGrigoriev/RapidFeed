@@ -1,6 +1,7 @@
 package http
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -66,7 +67,7 @@ func adminSettingsHandler(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				slog.Error("failed to create new user", "error", err)
 
-				http.Error(w, "Failed to create new user", http.StatusInternalServerError)
+				internalServerErrorHandler(w, r, nil)
 
 				return
 			}
@@ -82,7 +83,7 @@ func adminSettingsHandler(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				slog.Error("invalid user ID for blocking", "error", err)
 
-				http.Error(w, "Invalid user ID", http.StatusBadRequest)
+				internalServerErrorHandler(w, r, fmt.Errorf("invalid user ID"))
 
 				return
 			}
@@ -91,7 +92,7 @@ func adminSettingsHandler(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				slog.Error("failed to block user", "error", err)
 
-				http.Error(w, "Failed to block user", http.StatusInternalServerError)
+				internalServerErrorHandler(w, r, err)
 
 				return
 			}

@@ -12,3 +12,14 @@ func GetUserHash(username string) ([]byte, error) {
 
 	return storedHash, nil
 }
+
+func CheckUserBlocked(username string) (bool, error) {
+	var role string
+
+	err := DB.QueryRow("select role from users where username = ?", username).Scan(&role)
+	if err != nil {
+		return false, fmt.Errorf("user select error %w", err)
+	}
+
+	return role == "blocked", nil
+}
