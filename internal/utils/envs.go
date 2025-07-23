@@ -9,7 +9,6 @@ var (
 	Listen          string
 	SecretKey       string
 	RegisterAllowed bool
-	AdminPassword   string
 )
 
 func GetStringEnv(key, fallback string) string {
