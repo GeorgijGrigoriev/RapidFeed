@@ -13,7 +13,7 @@ func InitSchema() {
         "id" INTEGER PRIMARY KEY AUTOINCREMENT,
         "title" TEXT,
         "link" TEXT,
-        "date" TEXT,
+        "date" TIMESTAMP,
         "source" TEXT,
 		"description" TEXT,
         "feed_url" TEXT

@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func handler(tmpl *template.Template, w http.ResponseWriter, r *http.Request) {
@@ -93,8 +94,12 @@ func handler(tmpl *template.Template, w http.ResponseWriter, r *http.Request) {
 			var item feeder.FeedItem
 			err := rows.Scan(&item.Title, &item.Link, &item.Date, &item.Source, &item.Description)
 			if err != nil {
-				log.Fatal(err)
+				slog.Error("failed to scan feed urls", "error", err)
+
+				continue
 			}
+
+			item.Date = timeToHumanReadable(item.Date)
 
 			items = append(items, item)
 		}
@@ -129,4 +134,15 @@ func handler(tmpl *template.Template, w http.ResponseWriter, r *http.Request) {
 
 		return
 	}
+}
+
+func timeToHumanReadable(t string) string {
+	time, err := time.Parse(time.RFC3339, t)
+	if err != nil {
+		slog.Error("failed to parse time", "error", err)
+
+		return t
+	}
+
+	return time.Format("2006-01-02 15:04:05")
 }
