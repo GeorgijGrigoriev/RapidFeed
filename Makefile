@@ -1,15 +1,30 @@
-BINARY_NAME=rapidfeed
-VERSION=1.0.0
+BINARY_NAME := rapidfeed
+VERSION     := 1.0.0
+SRC         := cmd/main.go
 
-SRC=cmd/main.go
+OS_LIST     := linux darwin windows
+ARCH_LIST   := amd64
 
-OS=linux darwin windows
-ARCH=amd64
+.PHONY: all build bin clean
+
+all: bin build
+
+bin:
+	@echo "Building $(BINARY_NAME)-$(VERSION) for current platform..."
+	@go build -o $(BINARY_NAME)-$(VERSION) -ldflags "-X main.version=$(VERSION)" $(SRC)
 
 build:
-	@for os in $(OS); do \
-        export GOOS=$$os; \
-        go build -o ${BINARY_NAME}-${VERSION}-$${GOOS}-${ARCH} $$SRC; \
+	@echo "Cross‑building for $(OS_LIST)..."
+	@for os in $(OS_LIST); do \
+        for arch in $(ARCH_LIST); do \
+            echo "  → $(BINARY_NAME)-$(VERSION)-$$os-$$arch"; \
+            env GOOS=$$os GOARCH=$$arch \
+                go build -o $(BINARY_NAME)-$(VERSION)-$$os-$$arch \
+                -ldflags "-X main.version=$(VERSION)" $(SRC); \
+        done \
     done
-bin:
-	go build -o rapidfeed cmd/main.go
+
+clean:
+	@echo "Cleaning up..."
+	@rm -f $(BINARY_NAME)-$(VERSION)*
+
