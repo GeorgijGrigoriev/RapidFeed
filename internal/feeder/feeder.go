@@ -46,7 +46,7 @@ func fetchAndSaveFeed(url, source string) {
 
 			_, err := db.DB.Exec(insertQuery, item.Title, item.Link, date, source, cleanHTMLTags(item.Description), url)
 			if err != nil {
-				slog.Error("Error inserting new item in feed:", err)
+				slog.Error("Error inserting new item in feed:", "error", err)
 			}
 		}
 	}

@@ -32,7 +32,7 @@ func forbiddenHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func internalServerErrorHandler(w http.ResponseWriter, r *http.Request, err error) {
+func internalServerErrorHandler(w http.ResponseWriter, _ *http.Request, err error) {
 	tmpl := PrepareTemplate("internal/templates/error.html",
 		"internal/templates/base.html",
 		"internal/templates/navbar.html")
@@ -51,7 +51,7 @@ func internalServerErrorHandler(w http.ResponseWriter, r *http.Request, err erro
 	}
 }
 
-func invalidCredentialsHandler(w http.ResponseWriter, r *http.Request) {
+func invalidCredentialsHandler(w http.ResponseWriter, _ *http.Request) {
 	tmpl := PrepareTemplate("internal/templates/error.html",
 		"internal/templates/base.html",
 		"internal/templates/navbar.html")
