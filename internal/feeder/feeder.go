@@ -1,12 +1,13 @@
 package feeder
 
 import (
-	"github.com/GeorgijGrigoriev/RapidFeed/internal/db"
-	"github.com/mmcdole/gofeed"
 	"log"
 	"log/slog"
 	"regexp"
 	"time"
+
+	"github.com/GeorgijGrigoriev/RapidFeed/internal/db"
+	"github.com/mmcdole/gofeed"
 )
 
 var feedParser = gofeed.NewParser()

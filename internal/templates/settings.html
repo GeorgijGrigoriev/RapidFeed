@@ -1,10 +1,21 @@
 {{ define "content" }}
 <div class="container pure-g">
-<!--    <div>-->
-<!--        <label for="theme-toggle">Toggle Theme:</label>-->
-<!--        <input type="checkbox" id="theme-toggle" onclick="toggleTheme()">-->
-<!--    </div>-->
+    <!--    <div>-->
+    <!--        <label for="theme-toggle">Toggle Theme:</label>-->
+    <!--        <input type="checkbox" id="theme-toggle" onclick="toggleTheme()">-->
+    <!--    </div>-->
     <div class="pure-u-1-1">
+        <h4>Autorefresh feeds</h4>
+        <span class="hint">You can disable autorefresh - just pass 0 to Refresh Interval</span>
+        <form method="post" action="/settings" class="pure-form">
+            <label for="refresh_interval" class="form-label">Refresh Interval (minutes)</label>
+            <input type="number" class="form-control" id="refresh_interval" name="refresh_interval" min="0" max="1440"
+                value="{{.RefreshInterval}}" required>
+
+            <button type="submit" class="pure-button">Update Refresh Interval</button>
+        </form>
+
+        <hr />
         <h4>Manage feeds</h4>
         <form action="/settings" class="pure-form" method="post">
             <label for="feed_url">RSS Feed URL:</label>
@@ -26,26 +37,26 @@
             {{end}}
         </ul>
 
-<!--        <script>-->
-<!--            function toggleTheme() {-->
-<!--                const body = document.body;-->
-<!--                if (body.classList.contains('dark-theme')) {-->
-<!--                    body.classList.remove('dark-theme');-->
-<!--                    localStorage.setItem('theme', 'light');-->
-<!--                } else {-->
-<!--                    body.classList.add('dark-theme');-->
-<!--                    localStorage.setItem('theme', 'dark');-->
-<!--                }-->
-<!--            }-->
+        <!--        <script>-->
+        <!--            function toggleTheme() {-->
+        <!--                const body = document.body;-->
+        <!--                if (body.classList.contains('dark-theme')) {-->
+        <!--                    body.classList.remove('dark-theme');-->
+        <!--                    localStorage.setItem('theme', 'light');-->
+        <!--                } else {-->
+        <!--                    body.classList.add('dark-theme');-->
+        <!--                    localStorage.setItem('theme', 'dark');-->
+        <!--                }-->
+        <!--            }-->
 
-<!--            window.onload = function() {-->
-<!--                const theme = localStorage.getItem('theme') || 'light';-->
-<!--                if (theme === 'dark') {-->
-<!--                    document.body.classList.add('dark-theme');-->
-<!--                    document.getElementById('theme-toggle').checked = true;-->
-<!--                }-->
-<!--            };-->
-<!--        </script>-->
+        <!--            window.onload = function() {-->
+        <!--                const theme = localStorage.getItem('theme') || 'light';-->
+        <!--                if (theme === 'dark') {-->
+        <!--                    document.body.classList.add('dark-theme');-->
+        <!--                    document.getElementById('theme-toggle').checked = true;-->
+        <!--                }-->
+        <!--            };-->
+        <!--        </script>-->
     </div>
 </div>
 {{ end }}

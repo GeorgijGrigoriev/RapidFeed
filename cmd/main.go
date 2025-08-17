@@ -1,27 +1,33 @@
 package main
 
 import (
-	"github.com/GeorgijGrigoriev/RapidFeed/internal/http"
-	"github.com/GeorgijGrigoriev/RapidFeed/internal/utils"
+	"flag"
 	"log/slog"
 
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/db"
+	"github.com/GeorgijGrigoriev/RapidFeed/internal/feeder"
+	"github.com/GeorgijGrigoriev/RapidFeed/internal/http"
+	"github.com/GeorgijGrigoriev/RapidFeed/internal/utils"
 	_ "github.com/mattn/go-sqlite3"
 )
 
-var feeds = []string{
-	"https://www.cnews.ru/inc/rss/news.xml",
-	"https://www.opennet.ru/opennews/opennews_all_utf.rss",
-	"https://3dnews.ru/breaking/rss/",
-}
+var (
+	Version = "1.0.2"
+	Commit  = "ffffff"
+)
 
 func init() {
-	slog.Info("Initializing RapidFeed", "version", "1.0.0")
+	slog.Info("Initializing RapidFeed", "version", Version, "commit", Commit)
 
-	// Load config vars from env with default fallback
-	utils.Listen = utils.GetStringEnv("LISTEN", ":8080")
-	utils.SecretKey = utils.GetStringEnv("SECRET_KEY", "strong-secretkey")
-	utils.RegisterAllowed = utils.GetBoolEnv("REGISTRATION_ALLOWED", true)
+	listenFlag := flag.String("listen", ":8080", "Address to listen on")
+	secretKeyFlag := flag.String("secret-key", "strong-secretkey", "Secret key for sessions")
+	registerAllowedFlag := flag.Bool("registration-allowed", true, "Allow user registration")
+
+	flag.Parse()
+
+	utils.Listen = utils.GetStringEnv("RAPIDFEED_LISTEN", *listenFlag)
+	utils.SecretKey = utils.GetStringEnv("RAPIDFEED_SECRET_KEY", *secretKeyFlag)
+	utils.RegisterAllowed = utils.GetBoolEnv("RAPIDFEED_REGISTRATION_ALLOWED", *registerAllowedFlag)
 
 	slog.Info("Try to open database")
 
@@ -38,5 +44,11 @@ func init() {
 
 func main() {
 	slog.Info("Starting RapidFeed server")
+
+	go func() {
+		slog.Info("Starting background feeds puller")
+		feeder.StartAutoRefresh()
+	}()
+
 	http.New()
 }

@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/auth"
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/db"
@@ -67,7 +68,13 @@ func adminSettingsHandler(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				slog.Error("failed to create new user", "error", err)
 
-				internalServerErrorHandler(w, r, nil)
+				if strings.Contains(err.Error(), "UNIQUE constraint failed") ||
+					strings.Contains(err.Error(), "duplicate key") {
+					internalServerErrorHandler(w, r, fmt.Errorf("such user already registered"))
+
+					return
+				}
+				internalServerErrorHandler(w, r, err)
 
 				return
 			}

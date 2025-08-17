@@ -189,3 +189,8 @@ pre {
 .button-warning {
     background: rgb(223, 117, 20);
 }
+
+.hint {
+    font-size: 12px;
+    color: gray;
+}

@@ -2,8 +2,6 @@ package http
 
 import (
 	"fmt"
-	"github.com/GeorgijGrigoriev/RapidFeed/internal/db"
-	"github.com/GeorgijGrigoriev/RapidFeed/internal/feeder"
 	"html/template"
 	"log"
 	"log/slog"
@@ -12,6 +10,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/GeorgijGrigoriev/RapidFeed/internal/db"
+	"github.com/GeorgijGrigoriev/RapidFeed/internal/feeder"
 )
 
 func handler(tmpl *template.Template, w http.ResponseWriter, r *http.Request) {
@@ -36,6 +37,7 @@ func handler(tmpl *template.Template, w http.ResponseWriter, r *http.Request) {
 
 		return
 	}
+
 	if len(userFeeds) > 0 {
 		pageStr := r.URL.Query().Get("page")
 		perPageStr := r.URL.Query().Get("per_page")
@@ -56,6 +58,7 @@ func handler(tmpl *template.Template, w http.ResponseWriter, r *http.Request) {
 
 		query := fmt.Sprintf("SELECT COUNT(*) FROM feeds WHERE feed_url IN (%s)", placeholders)
 		args := make([]interface{}, len(userFeeds))
+
 		for i, u := range userFeeds {
 			args[i] = u
 		}
@@ -82,7 +85,8 @@ func handler(tmpl *template.Template, w http.ResponseWriter, r *http.Request) {
 
 		// Добавляем параметры пагинации
 		argsWithPagination = append(argsWithPagination, perPage, offset)
-		query = fmt.Sprintf("SELECT title, link, date, source, description FROM feeds WHERE feed_url IN (%s) ORDER BY date DESC LIMIT ? OFFSET ?", placeholders)
+		query = fmt.Sprintf(`SELECT title, link, date, source, description FROM feeds 
+		WHERE feed_url IN (%s) ORDER BY date DESC LIMIT ? OFFSET ?`, placeholders)
 
 		rows, err = db.DB.Query(query, argsWithPagination...)
 		if err != nil {
@@ -92,6 +96,7 @@ func handler(tmpl *template.Template, w http.ResponseWriter, r *http.Request) {
 
 		for rows.Next() {
 			var item feeder.FeedItem
+
 			err := rows.Scan(&item.Title, &item.Link, &item.Date, &item.Source, &item.Description)
 			if err != nil {
 				slog.Error("failed to scan feed urls", "error", err)
@@ -104,6 +109,7 @@ func handler(tmpl *template.Template, w http.ResponseWriter, r *http.Request) {
 			items = append(items, item)
 		}
 	}
+
 	paginatedItems := feeder.PaginatedFeedItems{
 		Items:      items,
 		Page:       page,
