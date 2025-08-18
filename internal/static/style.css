@@ -194,3 +194,8 @@ pre {
     font-size: 12px;
     color: gray;
 }
+
+.hint-wrapper {
+    display: flex;
+    flex-direction: column;
+}

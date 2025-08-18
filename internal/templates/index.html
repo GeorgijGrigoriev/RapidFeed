@@ -5,8 +5,12 @@
         <div class="control-panel">
             <form action="/refresh" method="post">
                 <button class="pure-button" type="submit"><img width="24" height="24"
-                                                               src="/static/internal/static/refresh-cw.svg"></button>
+                        src="/static/internal/static/refresh-cw.svg"></button>
             </form>
+            <div class="hint-wrapper" style="text-align: center;">
+                <span class="hint">Last update: {{ .PaginatedItems.LastUpdate }}</span>
+                <span class="hint">Next update: {{ .PaginatedItems.NextUpdate }}</span>
+            </div>
             <form action="/" method="get" class="pure-form">
                 <label for="per_page">Per page: </label>
                 <select name="per_page" id="per_page" onchange="this.form.submit()">
@@ -23,22 +27,24 @@
 
         <div class="pagination">
             {{if gt .PaginatedItems.Page 1}}
-            <a href="?page=1&per_page={{.PaginatedItems.PerPage}}"><<</a>
-            <a href="?page={{sub .PaginatedItems.Page 1}}&per_page={{.PaginatedItems.PerPage}}"><</a>
-            {{end}}
+            <a href="?page=1&per_page={{.PaginatedItems.PerPage}}">
+                <<< /a>
+                    <a href="?page={{sub .PaginatedItems.Page 1}}&per_page={{.PaginatedItems.PerPage}}">
+                        << /a>
+                            {{end}}
 
-            {{range $i := seq (max 1 (sub .PaginatedItems.Page 2)) (min .PaginatedItems.TotalPages (add
-            .PaginatedItems.Page 2))}}
-            <a class="{{if eq $i $.PaginatedItems.Page}}active{{end}}"
-               href="?page={{$i}}&per_page={{$.PaginatedItems.PerPage}}">{{$i}}</a>
-            {{end}}
+                            {{range $i := seq (max 1 (sub .PaginatedItems.Page 2)) (min .PaginatedItems.TotalPages (add
+                            .PaginatedItems.Page 2))}}
+                            <a class="{{if eq $i $.PaginatedItems.Page}}active{{end}}"
+                                href="?page={{$i}}&per_page={{$.PaginatedItems.PerPage}}">{{$i}}</a>
+                            {{end}}
 
-            {{if lt .PaginatedItems.Page .PaginatedItems.TotalPages}}
-            <a href="?page={{add .PaginatedItems.Page 1}}&per_page={{.PaginatedItems.PerPage}}">></a>
-            <a href="?page={{.PaginatedItems.TotalPages}}&per_page={{.PaginatedItems.PerPage}}">>></a>
-            {{end}}
+                            {{if lt .PaginatedItems.Page .PaginatedItems.TotalPages}}
+                            <a href="?page={{add .PaginatedItems.Page 1}}&per_page={{.PaginatedItems.PerPage}}">></a>
+                            <a href="?page={{.PaginatedItems.TotalPages}}&per_page={{.PaginatedItems.PerPage}}">>></a>
+                            {{end}}
 
-            <a>Total: {{ .PaginatedItems.TotalItems }}</a>
+                            <a>Total: {{ .PaginatedItems.TotalItems }}</a>
         </div>
 
         <ul class="feed-card">
@@ -55,20 +61,22 @@
 
         <div class="pagination">
             {{if gt .PaginatedItems.Page 1}}
-            <a href="?page=1&per_page={{.PaginatedItems.PerPage}}"><<</a>
-            <a href="?page={{sub .PaginatedItems.Page 1}}&per_page={{.PaginatedItems.PerPage}}"><</a>
-            {{end}}
+            <a href="?page=1&per_page={{.PaginatedItems.PerPage}}">
+                <<< /a>
+                    <a href="?page={{sub .PaginatedItems.Page 1}}&per_page={{.PaginatedItems.PerPage}}">
+                        << /a>
+                            {{end}}
 
-            {{range $i := seq (max 1 (sub .PaginatedItems.Page 2)) (min .PaginatedItems.TotalPages (add
-            .PaginatedItems.Page 2))}}
-            <a class="{{if eq $i $.PaginatedItems.Page}}active{{end}}"
-               href="?page={{$i}}&per_page={{$.PaginatedItems.PerPage}}">{{$i}}</a>
-            {{end}}
+                            {{range $i := seq (max 1 (sub .PaginatedItems.Page 2)) (min .PaginatedItems.TotalPages (add
+                            .PaginatedItems.Page 2))}}
+                            <a class="{{if eq $i $.PaginatedItems.Page}}active{{end}}"
+                                href="?page={{$i}}&per_page={{$.PaginatedItems.PerPage}}">{{$i}}</a>
+                            {{end}}
 
-            {{if lt .PaginatedItems.Page .PaginatedItems.TotalPages}}
-            <a href="?page={{add .PaginatedItems.Page 1}}&per_page={{.PaginatedItems.PerPage}}">></a>
-            <a href="?page={{.PaginatedItems.TotalPages}}&per_page={{.PaginatedItems.PerPage}}">>></a>
-            {{end}}
+                            {{if lt .PaginatedItems.Page .PaginatedItems.TotalPages}}
+                            <a href="?page={{add .PaginatedItems.Page 1}}&per_page={{.PaginatedItems.PerPage}}">></a>
+                            <a href="?page={{.PaginatedItems.TotalPages}}&per_page={{.PaginatedItems.PerPage}}">>></a>
+                            {{end}}
         </div>
     </div>
 </div>
