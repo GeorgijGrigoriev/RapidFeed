@@ -14,4 +14,6 @@ type PaginatedFeedItems struct {
 	PerPage    int
 	TotalPages int
 	TotalItems int
+	LastUpdate string
+	NextUpdate string
 }

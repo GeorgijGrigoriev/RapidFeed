@@ -40,6 +40,12 @@ func init() {
 	db.CreateDefaultAdmin()
 
 	slog.Info("Database initialized")
+
+	slog.Info("Running database migrations")
+
+	db.RunAllMigrations()
+
+	slog.Info("Database migrations done")
 }
 
 func main() {

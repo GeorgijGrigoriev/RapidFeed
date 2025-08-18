@@ -49,7 +49,7 @@ func handler(tmpl *template.Template, w http.ResponseWriter, r *http.Request) {
 
 		perPage, err = strconv.Atoi(perPageStr)
 		if err != nil || perPage < 1 {
-			perPage = 10
+			perPage = 100
 		}
 
 		offset := (page - 1) * perPage
@@ -110,12 +110,28 @@ func handler(tmpl *template.Template, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	lastUpdate, err := db.GetLastUpdateTS(userID)
+	if err != nil {
+		internalServerErrorHandler(w, r, err)
+
+		return
+	}
+
+	nextUpdate, err := db.GetNextUpdateTS(userID)
+	if err != nil {
+		internalServerErrorHandler(w, r, err)
+
+		return
+	}
+
 	paginatedItems := feeder.PaginatedFeedItems{
 		Items:      items,
 		Page:       page,
 		PerPage:    perPage,
 		TotalPages: totalPages,
 		TotalItems: totalCount,
+		LastUpdate: lastUpdate.Format(time.DateTime),
+		NextUpdate: nextUpdate.Format(time.DateTime),
 	}
 
 	user, err := db.GetUserInfo(userID)

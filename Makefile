@@ -1,5 +1,5 @@
 BINARY_NAME := rapidfeed
-VERSION     := 1.0.3
+VERSION     := 1.0.4
 SRC         := cmd/main.go
 COMMIT := $(shell git rev-parse --short HEAD)
 
