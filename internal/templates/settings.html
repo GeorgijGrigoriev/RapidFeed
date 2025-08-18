@@ -14,7 +14,14 @@
 
             <button type="submit" class="pure-button">Update Refresh Interval</button>
         </form>
-
+        <h4>Change password</h4>
+        <form action="/settings" class="pure-form" method="post">
+            <label for="current_password">Current password:</label>
+            <input type="text" id="current_password" name="current_password" required>
+            <label for="new_password">New Password:</label>
+            <input type="text" id="new_password" name="new_password" required>
+            <button class="pure-button" type="submit">Change password</button>
+        </form>
         <hr />
         <h4>Manage feeds</h4>
         <form action="/settings" class="pure-form" method="post">

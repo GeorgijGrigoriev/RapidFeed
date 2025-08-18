@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/GeorgijGrigoriev/RapidFeed/internal/auth"
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/db"
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/feeder"
 )
@@ -54,6 +55,52 @@ func userSettingsHandler(w http.ResponseWriter, r *http.Request) {
 
 		tmpl.ExecuteTemplate(w, "base", data)
 	case http.MethodPost:
+		if r.FormValue("current_password") != "" && r.FormValue("new_password") != "" {
+			currentPassword := r.FormValue("current_password")
+			newPassword := r.FormValue("new_password")
+
+			// Get user's current password hash from database
+			user, err := db.GetUserInfo(userID)
+			if err != nil {
+				internalServerErrorHandler(w, r, err)
+				return
+			}
+
+			hash, err := db.GetUserHash(user.Username)
+			if err != nil {
+				slog.Error("failed to get user hash", "error", err)
+				internalServerErrorHandler(w, r, fmt.Errorf("failed to verify current password"))
+				return
+			}
+
+			// Verify current password
+			err = auth.CheckPassword(hash, currentPassword)
+			if err != nil {
+				slog.Error("incorrect current password", "error", err)
+				http.Error(w, "Current password is incorrect", http.StatusUnauthorized)
+				return
+			}
+
+			// Hash new password
+			hashedPassword, err := auth.HashPassword(newPassword)
+			if err != nil {
+				slog.Error("failed to hash new password", "error", err)
+				internalServerErrorHandler(w, r, fmt.Errorf("failed to hash new password"))
+				return
+			}
+
+			// Update password in database
+			_, err = db.DB.Exec(`UPDATE users SET password = ? WHERE id = ?`, hashedPassword, userID)
+			if err != nil {
+				slog.Error("failed to update user password", "error", err)
+				internalServerErrorHandler(w, r, fmt.Errorf("failed to update password"))
+				return
+			}
+
+			http.Redirect(w, r, "/settings", http.StatusFound)
+			return
+		}
+
 		if r.FormValue("feed_id") != "" {
 			feedID := r.FormValue("feed_id")
 
