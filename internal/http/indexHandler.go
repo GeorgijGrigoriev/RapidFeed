@@ -111,14 +111,14 @@ func handler(tmpl *template.Template, w http.ResponseWriter, r *http.Request) {
 	}
 
 	lastUpdate, err := db.GetLastUpdateTS(userID)
-	if err != nil {
+	if err != nil && !strings.Contains(err.Error(), "no rows in result set") {
 		internalServerErrorHandler(w, r, err)
 
 		return
 	}
 
 	nextUpdate, err := db.GetNextUpdateTS(userID)
-	if err != nil {
+	if err != nil && !strings.Contains(err.Error(), "no rows in result set") {
 		internalServerErrorHandler(w, r, err)
 
 		return
