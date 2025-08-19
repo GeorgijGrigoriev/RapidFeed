@@ -3,9 +3,10 @@ package db
 import (
 	"database/sql"
 	"fmt"
-	"github.com/GeorgijGrigoriev/RapidFeed/internal/models"
 	"log/slog"
 	"os"
+
+	"github.com/GeorgijGrigoriev/RapidFeed/internal/models"
 )
 
 var DB *sql.DB
@@ -60,12 +61,14 @@ func GetUserFeeds(userID int) ([]models.UserFeed, error) {
 
 	for rows.Next() {
 		var feed models.UserFeed
+
 		err := rows.Scan(&feed.ID, &feed.FeedURL, &feed.Title)
 		if err != nil {
 			slog.Error("failed to scan user feed rows", "userID", userID)
 
 			return userFeeds, fmt.Errorf("failed to scan user feed rows: %w", err)
 		}
+
 		userFeeds = append(userFeeds, feed)
 	}
 
@@ -109,6 +112,7 @@ func GetUsers() ([]models.User, error) {
 
 	for rows.Next() {
 		var user models.User
+
 		err := rows.Scan(&user.ID, &user.Username, &user.Role)
 		if err != nil {
 			slog.Error("failed to scan users", "error", err)
@@ -123,7 +127,7 @@ func GetUsers() ([]models.User, error) {
 }
 
 func GetUsersWithFeeds() ([]models.UserWithFeeds, error) {
-	var usersWithFeeds []models.UserWithFeeds
+	usersWithFeeds := make([]models.UserWithFeeds, 0)
 
 	users, err := GetUsers()
 	if err != nil {
@@ -145,12 +149,14 @@ func GetUsersWithFeeds() ([]models.UserWithFeeds, error) {
 
 		for rows.Next() {
 			var feed models.UserFeed
+
 			err := rows.Scan(&feed.ID, &feed.FeedURL, &feed.Title)
 			if err != nil {
 				slog.Error("failed to scan user feed rows", "user", user)
 
 				return usersWithFeeds, fmt.Errorf("failed to scan user feed rows: %w", err)
 			}
+
 			userFeeds = append(userFeeds, feed)
 		}
 
