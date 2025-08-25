@@ -2,13 +2,14 @@ package http
 
 import (
 	"fmt"
+	"html/template"
+	"log/slog"
+	"net/http"
+
 	"github.com/GeorgijGrigoriev/RapidFeed"
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/auth"
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/db"
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/utils"
-	"html/template"
-	"log/slog"
-	"net/http"
 )
 
 var loginTemplate = prepareHTMLTemplate("login")

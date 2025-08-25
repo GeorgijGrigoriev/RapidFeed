@@ -2,10 +2,11 @@ package http
 
 import (
 	"fmt"
-	"github.com/GeorgijGrigoriev/RapidFeed"
 	"log"
 	"log/slog"
 	"net/http"
+
+	"github.com/GeorgijGrigoriev/RapidFeed"
 
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/utils"
 	"github.com/gorilla/sessions"
@@ -57,6 +58,8 @@ func New() {
 	http.HandleFunc("/403", forbiddenHandler)
 
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServerFS(RapidFeed.Static)))
+
+	slog.Info("Server is now listening", "listen address", utils.Listen)
 
 	log.Fatal(http.ListenAndServe(utils.Listen, nil))
 }

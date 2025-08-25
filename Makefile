@@ -25,6 +25,9 @@ build:
         done \
     done
 
+docker:
+	docker build -t ghcr.io/georgijgrigoriev/rapidfeed:latest --build-arg VERSION=$(VERSION) --build-arg COMMIT=$(COMMIT) -f build/Dockerfile .
+
 clean:
 	@echo "Cleaning up..."
 	@rm -f $(BINARY_NAME)-$(VERSION)*

@@ -33,7 +33,7 @@ func init() {
 
 	db.InitDB()
 
-	slog.Info("Database initialized")
+	slog.Info("Connection opened")
 
 	db.InitSchema() // maybe not necessary call it every time?
 
