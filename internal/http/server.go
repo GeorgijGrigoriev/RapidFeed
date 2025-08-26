@@ -1,7 +1,6 @@
 package http
 
 import (
-	"fmt"
 	"log"
 	"log/slog"
 	"net/http"
@@ -38,16 +37,17 @@ func New() {
 			"Proto", r.Proto,
 			"UserAgent", r.UserAgent())
 
-		tmpl := PrepareTemplate("internal/templates/index.html", "internal/templates/navbar.html")
-
-		fmt.Printf("%+v", tmpl.Name())
-
 		if r.URL.Path == "/login" || r.URL.Path == "/register" {
-			handler(PrepareTemplate("internal/templates/index.html", "internal/templates/navbar.html", "internal/templates/base.html"), w, r)
+			handler(PrepareTemplate("internal/templates/index.html",
+				"internal/templates/navbar.html",
+				"internal/templates/base.html"), w, r)
+
 			return
 		}
 
-		handler(PrepareTemplate("internal/templates/index.html", "internal/templates/navbar.html", "internal/templates/base.html"), w, r)
+		handler(PrepareTemplate("internal/templates/index.html",
+			"internal/templates/navbar.html",
+			"internal/templates/base.html"), w, r)
 	}))
 
 	http.Handle("/refresh", AuthMiddleware(refreshHandler))
@@ -58,6 +58,9 @@ func New() {
 	http.HandleFunc("/403", forbiddenHandler)
 
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServerFS(RapidFeed.Static)))
+
+	// api section
+	http.Handle("/api/users/list", TokenAuthMiddleware(nil))
 
 	slog.Info("Server is now listening", "listen address", utils.Listen)
 

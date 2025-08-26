@@ -25,7 +25,9 @@ func InitDB() {
 func GetUserInfo(userID int) (models.User, error) {
 	var user models.User
 
-	err := DB.QueryRow(`SELECT id, username, role FROM users WHERE id = ?`, userID).Scan(&user.ID, &user.Username, &user.Role)
+	err := DB.QueryRow(
+		`SELECT id, username, role FROM users WHERE id = ?`, userID).Scan(
+		&user.ID, &user.Username, &user.Role)
 	if err != nil {
 		slog.Error("failed to get user info", "userID", userID)
 
@@ -145,7 +147,6 @@ func GetUsersWithFeeds() ([]models.UserWithFeeds, error) {
 
 			return usersWithFeeds, fmt.Errorf("failed to get user feeds: %w", err)
 		}
-		defer rows.Close()
 
 		for rows.Next() {
 			var feed models.UserFeed
@@ -159,6 +160,8 @@ func GetUsersWithFeeds() ([]models.UserWithFeeds, error) {
 
 			userFeeds = append(userFeeds, feed)
 		}
+
+		rows.Close()
 
 		usersWithFeeds = append(usersWithFeeds, models.UserWithFeeds{
 			User:      user,

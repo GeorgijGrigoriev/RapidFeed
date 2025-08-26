@@ -80,6 +80,20 @@ func InitSchema() {
 
 		os.Exit(1)
 	}
+
+	createTokenTable := `CREATE TABLE IF NOT EXISTS token_storage (
+		"id" INTEGER PRIMARY KEY AUTOINCREMENT,
+		"user_id" INTEGER,
+		"token" TEXT NOT NULL,
+		"expires_at" INTEGER,
+		"permissions" INTEGER
+	)`
+
+	_, err = DB.Exec(createTokenTable)
+	if err != nil {
+		slog.Error("failed to create token_storage table", "error", err)
+		os.Exit(1)
+	}
 }
 
 func CreateDefaultAdmin() {
