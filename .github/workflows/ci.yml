@@ -80,7 +80,8 @@ jobs:
         run: npm install stylelint stylelint-config-standard
 
       - name: Create stylelint configuration
-        run: echo '{ "extends": "stylelint-config-standard" }' > .stylelintrc.json
+        run: |
+          echo '{ "extends": "stylelint-config-standard" }' > .stylelintrc.json
 
       - name: CSS linting
         run: npx stylelint "./internals/static/*.css"
@@ -95,7 +96,7 @@ jobs:
 
       - name: Install Trivy
         run: |
-     sudo apt-get update -y
+          sudo apt-get update -y
           sudo apt-get install -y wget
           wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.53.0_Linux-64bit.deb
           sudo dpkg -i trivy_0.53.0_Linux-64bit.deb
