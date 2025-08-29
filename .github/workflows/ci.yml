@@ -62,7 +62,7 @@ jobs:
         run: npm install -g htmlhint
 
       - name: Run HTML validation
-        run: npx htmlhint "./internals/templates/**/*.html"
+        run: npx htmlhint "./internal/templates/**/*.html"
 
   csslint:
     runs-on: ubuntu-latest
@@ -82,7 +82,7 @@ jobs:
           echo '{ "extends": "stylelint-config-standard" }' > .stylelintrc.json
 
       - name: CSS linting
-        run: npx stylelint "./internals/static/**/*.css"
+        run: npx stylelint "./internal/static/**/*.css"
 
   security_scan:
     runs-on: ubuntu-latest
