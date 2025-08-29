@@ -53,8 +53,8 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: '1.22'
-      - name : HTML Golangci-lint
-        run : |
-          go install github.com/mvdan/go-html-validator@latest
+      - name: HTML Golangci-lint
+        run: |
+          go get github.com/go-playground/validator/v10
           go-html-validator ./templates
     
