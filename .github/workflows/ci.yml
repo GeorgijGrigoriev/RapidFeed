@@ -82,7 +82,7 @@ jobs:
           echo '{ "extends": "stylelint-config-standard" }' > .stylelintrc.json
 
       - name: CSS linting
-        run: npx stylelint "./internal/static/**/*.css"
+        run: npx stylelint "./internal/static/**/*.css" "!./internal/static/**/*.mini.css"
 
   security_scan:
     runs-on: ubuntu-latest
@@ -90,19 +90,19 @@ jobs:
       - uses: actions/checkout@v5
 
       - name: Build Docker Image
-        run: docker build -t repidfeed:latest .
+        run: docker build -t rapidfeed:latest .
 
       - name: Install Trivy
         run: |
           sudo apt-get update -y
           sudo apt-get install -y wget
-          wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.53.0_Linux-64bit.deb
-          sudo dpkg -i trivy_0.53.0_Linux-64bit.deb
+          wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.65.0_Linux-64bit.deb
+          sudo dpkg -i trivy_0.65.0_Linux-64bit.deb
 
-      - name: Generate Trivy Report (Before Failing)
+      - name: Generate Trivy Report
         run: |
-          trivy image --format json -o trivy-results.json repidfeed:latest
-          trivy image --severity HIGH,CRITICAL repidfeed:latest | tee trivy-report.txt
+          trivy image --format json -o trivy-results.json rapidfeed:latest
+          trivy image --severity HIGH,CRITICAL rapidfeed:latest | tee trivy-report.txt
 
       - name: Upload Trivy Report
         uses: actions/upload-artifact@v4
@@ -114,4 +114,4 @@ jobs:
           retention-days: 7
 
       - name: Fail if Critical Vulnerability Found
-        run: trivy image --exit-code 1 --severity CRITICAL repidfeed:latest
+        run: trivy image --exit-code 1 --severity CRITICAL rapidfeed:latest
