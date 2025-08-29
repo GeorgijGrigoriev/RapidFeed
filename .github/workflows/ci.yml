@@ -53,18 +53,16 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - name: Install Node.js
+        uses: actions/setup-node@v4
         with:
-          go-version: '1.22'
+          node-version: '20'
 
-      - name: Install go-html-validator
-        run: |
-          go install github.com/matcornic/go-html-validator/cmd/go-html-validator@latest
-          echo "$HOME/go/bin" >> $GITHUB_PATH
+      - name: Install htmlhint
+        run: npm install -g htmlhint
 
-      - name: HTML validation
-        run: go-html-validator ./internals/templates/
+      - name: Run HTML validation
+        run: npx htmlhint "./internals/templates/**/*.html"
 
   csslint:
     runs-on: ubuntu-latest
@@ -84,7 +82,7 @@ jobs:
           echo '{ "extends": "stylelint-config-standard" }' > .stylelintrc.json
 
       - name: CSS linting
-        run: npx stylelint "./internals/static/*.css"
+        run: npx stylelint "./internals/static/**/*.css"
 
   security_scan:
     runs-on: ubuntu-latest
