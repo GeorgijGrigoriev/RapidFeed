@@ -43,7 +43,7 @@ func TestGetUserInfo(t *testing.T) {
 			t.Fatalf("failed to insert test user: %v", err)
 		}
 
-		user, err := GetUserInfo(1)
+		user, err := GetUserInfoById(1)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -56,7 +56,7 @@ func TestGetUserInfo(t *testing.T) {
 	t.Run("user not found", func(t *testing.T) {
 		setupTestDB(t)
 
-		_, err := GetUserInfo(42)
+		_, err := GetUserInfoById(42)
 		if err == nil {
 			t.Fatalf("expected error for missing user, got nil")
 		}

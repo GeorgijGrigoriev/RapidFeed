@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -22,7 +23,7 @@ func InitDB() {
 	DB = db
 }
 
-func GetUserInfo(userID int) (models.User, error) {
+func GetUserInfoById(userID int) (models.User, error) {
 	var user models.User
 
 	err := DB.QueryRow(
@@ -35,6 +36,25 @@ func GetUserInfo(userID int) (models.User, error) {
 	}
 
 	return user, nil
+}
+
+func GetUserInfoByUsername(username string) (*models.User, error) {
+	var user models.User
+
+	err := DB.QueryRow(
+		`SELECT id, username, role FROM users WHERE username = ?`, username).Scan(
+		&user.ID, &user.Username, &user.Role)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return &user, nil
+		}
+
+		slog.Error("failed to get user info", "username", username)
+
+		return &user, fmt.Errorf("failed to get user info: %w", err)
+	}
+
+	return &user, nil
 }
 
 func GetUserRole(userID int) (string, error) {

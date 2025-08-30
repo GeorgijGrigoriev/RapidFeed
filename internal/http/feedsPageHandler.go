@@ -2,20 +2,19 @@ package http
 
 import (
 	"fmt"
-	"html/template"
 	"log"
 	"log/slog"
 	"math"
-	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/db"
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/feeder"
+	"github.com/gofiber/fiber/v2"
 )
 
-func handler(tmpl *template.Template, w http.ResponseWriter, r *http.Request) {
+func feedsPageHandler(c *fiber.Ctx) error {
 	var (
 		items      []feeder.FeedItem
 		page       int
@@ -24,23 +23,16 @@ func handler(tmpl *template.Template, w http.ResponseWriter, r *http.Request) {
 		totalCount int
 	)
 
-	userID, err := checkSession(r)
-	if err != nil {
-		forbiddenHandler(w, r)
-
-		return
-	}
+	userID := 1
 
 	userFeeds, err := db.GetUserFeedUrls(userID)
 	if err != nil {
-		internalServerErrorHandler(w, r, err)
-
-		return
+		return c.SendString("error")
 	}
 
 	if len(userFeeds) > 0 {
-		pageStr := r.URL.Query().Get("page")
-		perPageStr := r.URL.Query().Get("per_page")
+		pageStr := c.Query("page")
+		perPageStr := c.Query("per_page")
 
 		page, err = strconv.Atoi(pageStr)
 		if err != nil || page < 1 {
@@ -85,7 +77,7 @@ func handler(tmpl *template.Template, w http.ResponseWriter, r *http.Request) {
 
 		// Добавляем параметры пагинации
 		argsWithPagination = append(argsWithPagination, perPage, offset)
-		query = fmt.Sprintf(`SELECT title, link, date, source, description FROM feeds 
+		query = fmt.Sprintf(`SELECT title, link, date, source, description FROM feeds
 		WHERE feed_url IN (%s) ORDER BY date DESC LIMIT ? OFFSET ?`, placeholders)
 
 		rows, err = db.DB.Query(query, argsWithPagination...)
@@ -112,16 +104,13 @@ func handler(tmpl *template.Template, w http.ResponseWriter, r *http.Request) {
 
 	lastUpdate, err := db.GetLastUpdateTS(userID)
 	if err != nil && !strings.Contains(err.Error(), "no rows in result set") {
-		internalServerErrorHandler(w, r, err)
 
-		return
+		return c.SendString("internal")
 	}
 
 	nextUpdate, err := db.GetNextUpdateTS(userID)
 	if err != nil && !strings.Contains(err.Error(), "no rows in result set") {
-		internalServerErrorHandler(w, r, err)
-
-		return
+		return c.SendString("internal")
 	}
 
 	paginatedItems := feeder.PaginatedFeedItems{
@@ -136,35 +125,14 @@ func handler(tmpl *template.Template, w http.ResponseWriter, r *http.Request) {
 
 	user, err := db.GetUserInfoById(userID)
 	if err != nil {
-		forbiddenHandler(w, r)
 
-		return
+		return c.SendString("forbidden")
 	}
 
-	data := map[string]interface{}{
+	return c.Render("templates/index", fiber.Map{
 		"PaginatedItems": paginatedItems,
 		"User":           user,
 		"Title":          "RapidFeed",
 		"NoFeeds":        len(userFeeds) == 0,
-	}
-
-	err = tmpl.ExecuteTemplate(w, "base", data)
-	if err != nil {
-		slog.Error("failed to execute index page template", "error", err)
-
-		internalServerErrorHandler(w, r, err)
-
-		return
-	}
-}
-
-func timeToHumanReadable(t string) string {
-	time, err := time.Parse(time.RFC3339, t)
-	if err != nil {
-		slog.Error("failed to parse time", "error", err)
-
-		return t
-	}
-
-	return time.Format("2006-01-02 15:04:05")
+	})
 }

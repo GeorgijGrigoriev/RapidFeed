@@ -1,7 +1,6 @@
 package http
 
 import (
-	"encoding/json"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -11,18 +10,10 @@ import (
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/utils"
 )
 
-const tokenHeaderKey = "X-Token"
-
-func jsonError(code int, err string) string {
-	body := map[string]any{"status": code, "error": err}
-
-	marshaledBody, marshalError := json.Marshal(body)
-	if marshalError != nil {
-		panic(err)
-	}
-
-	return string(marshaledBody)
-}
+const (
+	tokenHeaderKey = "X-Token"
+	tokenInfoKey   = "token-info"
+)
 
 func defaultErrorResponser(w http.ResponseWriter, code int, err string) {
 	h := w.Header()
@@ -99,7 +90,7 @@ func checkSession(r *http.Request) (int, error) {
 	return userID, nil
 }
 
-func TokenAuthMiddleware(next http.Handler) http.Handler {
+func TokenAuthMiddleware(next http.HandlerFunc) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get(tokenHeaderKey)
 		if authHeader == "" {

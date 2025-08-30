@@ -21,7 +21,7 @@ func adminSettingsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := db.GetUserInfo(userID)
+	user, err := db.GetUserInfoById(userID)
 	if err != nil {
 		internalServerErrorHandler(w, r, err)
 

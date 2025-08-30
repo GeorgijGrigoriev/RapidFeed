@@ -28,7 +28,7 @@ func userSettingsHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		user, err := db.GetUserInfo(userID)
+		user, err := db.GetUserInfoById(userID)
 		if err != nil {
 			internalServerErrorHandler(w, r, err)
 
@@ -60,7 +60,7 @@ func userSettingsHandler(w http.ResponseWriter, r *http.Request) {
 			newPassword := r.FormValue("new_password")
 
 			// Get user's current password hash from database
-			user, err := db.GetUserInfo(userID)
+			user, err := db.GetUserInfoById(userID)
 			if err != nil {
 				internalServerErrorHandler(w, r, err)
 				return

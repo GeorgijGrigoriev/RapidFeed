@@ -6,9 +6,9 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/GeorgijGrigoriev/RapidFeed"
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/auth"
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/db"
+	"github.com/GeorgijGrigoriev/RapidFeed/internal/ui"
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/utils"
 )
 
@@ -16,10 +16,7 @@ var loginTemplate = prepareHTMLTemplate("login")
 var registerTemplate = prepareHTMLTemplate("register")
 
 func prepareHTMLTemplate(name string) *template.Template {
-	f, err := RapidFeed.HTMLTemplates.ReadFile(fmt.Sprintf("internal/templates/%s.html", name))
-	if err != nil {
-		panic(err)
-	}
+	f, _ := ui.HTMLTemplates.ReadFile(fmt.Sprintf("internal/templates/%s.html", name))
 
 	return template.Must(template.New(name).Parse(string(f)))
 }
