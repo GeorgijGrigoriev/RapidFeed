@@ -1,141 +1,108 @@
 package http
 
 import (
-	"fmt"
-	"log/slog"
 	"net/http"
-	"strconv"
-	"strings"
 
-	"github.com/GeorgijGrigoriev/RapidFeed/internal/auth"
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/db"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/log"
 )
 
-func adminSettingsHandler(w http.ResponseWriter, r *http.Request) {
-	userID, err := checkSession(r)
+const adminSettingsTemplate = "templates/admin_settings"
+
+func adminSettingsRender(c *fiber.Ctx) error {
+	userInfo, err := getSessionInfo(c)
 	if err != nil {
-		slog.Debug("attempt to access admin user settings without login")
+		log.Error("failed to get user id from ctx: ", err)
 
-		http.Redirect(w, r, "/login", http.StatusFound)
-
-		return
+		return c.Render(errorTemplate, defaultInternalErrorMap(err))
 	}
 
-	user, err := db.GetUserInfoById(userID)
+	usersWithFeeds, err := db.GetUsersWithFeeds()
 	if err != nil {
-		internalServerErrorHandler(w, r, err)
+		log.Error("failed to get users and feeds")
 
-		return
+		return c.Render(errorTemplate, defaultInternalErrorMap(err))
 	}
 
-	switch r.Method {
-	case http.MethodGet:
-		usersWithFeeds, err := db.GetUsersWithFeeds()
-		if err != nil {
-			internalServerErrorHandler(w, r, err)
+	return c.Render(adminSettingsTemplate, fiber.Map{
+		"UsersWithFeeds": usersWithFeeds,
+		"User":           userInfo,
+		"Title":          "RapidFeed - Admin settings",
+	})
+}
 
-			return
-		}
+func addUserHandler(c *fiber.Ctx) error {
+	username := c.FormValue("username")
+	password := c.FormValue("password")
+	role := c.FormValue("role")
 
-		tmpl := PrepareTemplate("internal/templates/base.html", "internal/templates/navbar.html", "internal/templates/admin_users.html")
+	if username == "" || password == "" || role == "" {
+		log.Error("username or password or role is empty but shouldn't")
 
-		data := map[string]interface{}{
-			"UsersWithFeeds": usersWithFeeds,
-			"User":           user,
-			"Title":          "Admin - RapidFeed",
-		}
-
-		execErr := tmpl.ExecuteTemplate(w, "base", data)
-		if execErr != nil {
-			slog.Error("failed to execute template", "error", execErr)
-		}
-	case http.MethodPost:
-		username := r.FormValue("username")
-		password := r.FormValue("password")
-		role := r.FormValue("role")
-
-		if username != "" && password != "" && role != "" {
-			hashedPassword, err := auth.HashPassword(password)
-			if err != nil {
-				slog.Error("failed to hash password", "error", err)
-
-				internalServerErrorHandler(w, r, err)
-
-				return
-			}
-
-			_, err = db.DB.Exec(`INSERT INTO users (username, password, role) VALUES (?, ?, ?)`, username, hashedPassword, role)
-			if err != nil {
-				slog.Error("failed to create new user", "error", err)
-
-				if strings.Contains(err.Error(), "UNIQUE constraint failed") ||
-					strings.Contains(err.Error(), "duplicate key") {
-					internalServerErrorHandler(w, r, fmt.Errorf("such user already registered"))
-
-					return
-				}
-				internalServerErrorHandler(w, r, err)
-
-				return
-			}
-
-			http.Redirect(w, r, "/admin/users", http.StatusFound)
-
-			return
-		}
-
-		blockUserID := r.FormValue("block_user_id")
-		if blockUserID != "" {
-			userID, err := strconv.Atoi(blockUserID)
-			if err != nil {
-				slog.Error("invalid user ID for blocking", "error", err)
-
-				internalServerErrorHandler(w, r, fmt.Errorf("invalid user ID"))
-
-				return
-			}
-
-			_, err = db.DB.Exec(`UPDATE users SET role = 'blocked' WHERE id = ?`, userID)
-			if err != nil {
-				slog.Error("failed to block user", "error", err)
-
-				internalServerErrorHandler(w, r, err)
-
-				return
-			}
-
-			http.Redirect(w, r, "/admin/users", http.StatusFound)
-
-			return
-		}
-
-		deleteFeedID := r.FormValue("delete_feed_id")
-		if deleteFeedID != "" {
-			feedID, err := strconv.Atoi(deleteFeedID)
-			if err != nil {
-				slog.Error("invalid feed ID for deletion", "error", err)
-
-				http.Error(w, "Invalid feed ID", http.StatusBadRequest)
-
-				return
-			}
-
-			_, err = db.DB.Exec(`DELETE FROM user_feeds WHERE id = ?`, feedID)
-			if err != nil {
-				slog.Error("failed to delete user feed", "error", err)
-
-				http.Error(w, "Failed to delete user feed", http.StatusInternalServerError)
-
-				return
-			}
-
-			http.Redirect(w, r, "/admin/users", http.StatusFound)
-
-			return
-		}
-
-		http.Error(w, "Invalid request", http.StatusBadRequest)
-	default:
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return c.Redirect("/admin/users", http.StatusConflict)
 	}
+
+	err := db.AddUser(username, password, role)
+	if err != nil {
+		log.Error("failed to create new user: ", err)
+
+		return c.Render(errorTemplate, defaultInternalErrorMap(err))
+	}
+
+	return c.Redirect("/admin/users", http.StatusFound)
+}
+
+func blockUserHandler(c *fiber.Ctx) error {
+	blockUserId := c.FormValue("block_user_id")
+	if blockUserId == "" {
+		log.Warn("empty user id for block is passed, nothing to block")
+
+		return c.Redirect("/admin/users", http.StatusFound)
+	}
+
+	err := db.BlockUser(blockUserId)
+	if err != nil {
+		log.Errorf("failed to block user %s: %v", blockUserId, err)
+
+		return c.Render(errorTemplate, defaultInternalErrorMap(err))
+	}
+
+	return c.Redirect("/admin/users", http.StatusFound)
+}
+
+func unblockUserHandler(c *fiber.Ctx) error {
+	unblockUserId := c.FormValue("unblock_user_id")
+	if unblockUserId == "" {
+		log.Warn("empty user id for unblock is passed, nothing to unblock")
+
+		return c.Redirect("/admin/users", http.StatusFound)
+	}
+
+	err := db.UnblockUser(unblockUserId)
+	if err != nil {
+		log.Errorf("failed to unblock user %s: %v", unblockUserId, err)
+
+		return c.Render(errorTemplate, defaultInternalErrorMap(err))
+	}
+
+	return c.Redirect("/admin/users", http.StatusFound)
+}
+
+func removeUserFeedHandler(c *fiber.Ctx) error {
+	deleteFeedId := c.FormValue("delete_feed_id")
+	if deleteFeedId == "" {
+		log.Warn("empty user feed id for dele is passed, nothing to delete")
+
+		return c.Redirect("/admin/users", http.StatusFound)
+	}
+
+	err := db.DeleteUserFeed(deleteFeedId)
+	if err != nil {
+		log.Error("failed to delete user feed: ", err)
+
+		return c.Render(errorTemplate, defaultInternalErrorMap(err))
+	}
+
+	return c.Redirect("/admin/users", http.StatusFound)
 }

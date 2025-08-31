@@ -3,11 +3,8 @@ package http
 import (
 	"fmt"
 	"net/http"
-	"time"
 
-	"github.com/GeorgijGrigoriev/RapidFeed/internal/db"
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/models"
-	"github.com/GeorgijGrigoriev/RapidFeed/internal/utils"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/log"
 )
@@ -68,41 +65,4 @@ func adminSessionMiddleware() fiber.Handler {
 
 		return c.Next()
 	}
-}
-
-func checkSession(r *http.Request) (int, error) {
-	session, _ := store.Get(r, utils.SecretKey)
-	userID, ok := session.Values["user_id"].(int)
-
-	if !ok || userID == 0 {
-		return 0, fmt.Errorf("user session not found")
-	}
-
-	return userID, nil
-}
-
-func TokenAuthMiddleware(next http.HandlerFunc) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		authHeader := r.Header.Get(tokenHeaderKey)
-		if authHeader == "" {
-			defaultErrorResponser(w, http.StatusUnauthorized, "missing token")
-
-			return
-		}
-
-		tokenInfo, err := db.GetToken(authHeader)
-		if err != nil {
-			defaultErrorResponser(w, http.StatusUnauthorized, "no token")
-
-			return
-		}
-
-		if time.Now().After(tokenInfo.ExpiresAt) {
-			defaultErrorResponser(w, http.StatusUnauthorized, "token expired")
-
-			return
-		}
-
-		next.ServeHTTP(w, r)
-	})
 }

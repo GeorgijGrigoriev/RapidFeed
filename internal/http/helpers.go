@@ -26,17 +26,6 @@ func jsonError(code int, err string) string {
 	return string(marshaledBody)
 }
 
-func jsonResponse(code int, content any) string {
-	body := map[string]any{"status": code, "content": content}
-
-	marshaledBody, marshalError := json.Marshal(body)
-	if marshalError != nil {
-		panic(marshalError)
-	}
-
-	return string(marshaledBody)
-}
-
 func getUserIdFromCtx(c *fiber.Ctx) (int, error) {
 	userId := c.Get("userId")
 

@@ -1,22 +1,21 @@
 package http
 
 import (
-	"fmt"
-	"log/slog"
+	"database/sql"
+	"errors"
 	"math"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/db"
-	"github.com/GeorgijGrigoriev/RapidFeed/internal/feeder"
+	"github.com/GeorgijGrigoriev/RapidFeed/internal/models"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/log"
 )
 
 func feedsPageHandler(c *fiber.Ctx) error {
 	var (
-		items      []feeder.FeedItem
+		items      []models.FeedItem
 		page       int
 		perPage    int
 		totalPages int
@@ -32,7 +31,9 @@ func feedsPageHandler(c *fiber.Ctx) error {
 
 	userFeeds, err := db.GetUserFeedUrls(userInfo.ID)
 	if err != nil {
-		return c.SendString("error")
+		log.Errorf("failed to get %s feeds: %v", userInfo.Username, err)
+
+		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
 	}
 
 	if len(userFeeds) > 0 {
@@ -51,81 +52,56 @@ func feedsPageHandler(c *fiber.Ctx) error {
 
 		offset := (page - 1) * perPage
 
-		placeholders := strings.Repeat(",?", len(userFeeds))[1:]
-
-		query := fmt.Sprintf("SELECT COUNT(*) FROM feeds WHERE feed_url IN (%s)", placeholders)
-		args := make([]interface{}, len(userFeeds))
-
-		for i, u := range userFeeds {
-			args[i] = u
-		}
-
-		rows, err := db.DB.Query(query, args...)
+		totalCount, err = db.GetTotalUserFeedItemsCount(userFeeds)
 		if err != nil {
-			log.Fatal(err)
-		}
-		defer rows.Close()
+			log.Errorf("failed to count %s total feed items: %v", userInfo.Username, err)
 
-		for rows.Next() {
-			err := rows.Scan(&totalCount)
-			if err != nil {
-				log.Fatal(err)
-			}
+			return c.Render(errorTemplate, defaultInternalErrorMap(nil))
 		}
 
 		totalPages = int(math.Ceil(float64(totalCount) / float64(perPage)))
 
-		argsWithPagination := make([]any, 0, len(userFeeds)+2)
-		for _, u := range userFeeds {
-			argsWithPagination = append(argsWithPagination, u)
-		}
-
-		// Добавляем параметры пагинации
-		argsWithPagination = append(argsWithPagination, perPage, offset)
-		query = fmt.Sprintf(`SELECT title, link, date, source, description FROM feeds
-		WHERE feed_url IN (%s) ORDER BY date DESC LIMIT ? OFFSET ?`, placeholders)
-
-		rows, err = db.DB.Query(query, argsWithPagination...)
+		items, err = db.GetUserFeedItems(userFeeds, perPage, offset)
 		if err != nil {
-			log.Fatal(err)
-		}
-		defer rows.Close()
+			log.Errorf("failed to get %s feed items: %v", userInfo.Username, err)
 
-		for rows.Next() {
-			var item feeder.FeedItem
-
-			err := rows.Scan(&item.Title, &item.Link, &item.Date, &item.Source, &item.Description)
-			if err != nil {
-				slog.Error("failed to scan feed urls", "error", err)
-
-				continue
-			}
-
-			item.Date = timeToHumanReadable(item.Date)
-
-			items = append(items, item)
+			return c.Render(errorTemplate, defaultInternalErrorMap(nil))
 		}
 	}
 
 	lastUpdate, err := db.GetLastUpdateTS(userInfo.ID)
-	if err != nil && !strings.Contains(err.Error(), "no rows in result set") {
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		log.Errorf("failed to get last update ts for %s feeds: %v", userInfo.Username, err)
 
-		return c.SendString("internal")
+		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
 	}
 
 	nextUpdate, err := db.GetNextUpdateTS(userInfo.ID)
-	if err != nil && !strings.Contains(err.Error(), "no rows in result set") {
-		return c.SendString("internal")
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		log.Errorf("failed to get next update ts for %s feeds: %v", userInfo.Username, err)
+
+		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
 	}
 
-	paginatedItems := feeder.PaginatedFeedItems{
+	luStr := lastUpdate.Format(time.DateTime)
+	nuStr := nextUpdate.Format(time.DateTime)
+
+	if lastUpdate.IsZero() {
+		luStr = "Not performed yet"
+	}
+
+	if nextUpdate.IsZero() {
+		nuStr = "Will be performed soon"
+	}
+
+	paginatedItems := models.PaginatedFeedItems{
 		Items:      items,
 		Page:       page,
 		PerPage:    perPage,
 		TotalPages: totalPages,
 		TotalItems: totalCount,
-		LastUpdate: lastUpdate.Format(time.DateTime),
-		NextUpdate: nextUpdate.Format(time.DateTime),
+		LastUpdate: luStr,
+		NextUpdate: nuStr,
 	}
 
 	return c.Render("templates/index", fiber.Map{

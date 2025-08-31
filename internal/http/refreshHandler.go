@@ -10,14 +10,14 @@ import (
 )
 
 func refreshHandler(c *fiber.Ctx) error {
-	userId, err := getUserIdFromCtx(c)
+	userInfo, err := getSessionInfo(c)
 	if err != nil {
 		log.Error("failed to get user id from ctx: ", err)
 
 		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
 	}
 
-	userFeeds, err := db.GetUserFeedUrls(userId)
+	userFeeds, err := db.GetUserFeedUrls(userInfo.ID)
 	if err != nil {
 		log.Error("failed to get user feed urls: ", err)
 

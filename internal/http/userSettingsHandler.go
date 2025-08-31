@@ -2,14 +2,16 @@ package http
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/auth"
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/db"
+	"github.com/GeorgijGrigoriev/RapidFeed/internal/feeder"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/log"
 )
 
-const userSettingsTemplate = "templates/userSettings"
+const userSettingsTemplate = "templates/user_settings"
 
 func userSettingsRender(c *fiber.Ctx) error {
 	userInfo, err := getSessionInfo(c)
@@ -71,92 +73,96 @@ func changePasswordHandler(c *fiber.Ctx) error {
 		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
 	}
 
-	return c.Redirect("/settings", http.StatusFound)
+	return c.Redirect("/settings#change-password", http.StatusFound)
 }
 
-//func userSettingsHandler(w http.ResponseWriter, r *http.Request) {
-//	switch r.Method {
-//		if r.FormValue("feed_id") != "" {
-//			feedID := r.FormValue("feed_id")
-//
-//			_, err := db.DB.Exec(`DELETE FROM user_feeds WHERE id = ? AND user_id = ?`, feedID, userID)
-//			if err != nil {
-//				slog.Error("failed to delete user rss feed", "error", err)
-//
-//				internalServerErrorHandler(w, r, fmt.Errorf("failed to delete user rss feed"))
-//
-//				return
-//			}
-//
-//			http.Redirect(w, r, "/settings", http.StatusFound)
-//
-//			return
-//		}
-//
-//		if r.FormValue("refresh_interval") != "" {
-//			intervalStr := r.FormValue("refresh_interval")
-//
-//			interval, err := strconv.Atoi(intervalStr)
-//			if err != nil || interval < 0 {
-//				internalServerErrorHandler(w, r, fmt.Errorf("bad refresh interval"))
-//
-//				return
-//			}
-//
-//			err = db.SetUserRefreshInterval(userID, interval)
-//			if err != nil {
-//				slog.Error("failed to set user refresh interval", "error", err)
-//				internalServerErrorHandler(w, r, fmt.Errorf("failed to update refresh interval"))
-//
-//				return
-//			}
-//
-//			http.Redirect(w, r, "/settings", http.StatusFound)
-//
-//			return
-//		}
-//
-//		feedURL := r.FormValue("feed_url")
-//
-//		feeds, err := db.GetUserFeeds(userID)
-//		if err != nil {
-//			internalServerErrorHandler(w, r, err)
-//
-//			return
-//		}
-//
-//		for _, feed := range feeds {
-//			if feed.FeedURL == feedURL {
-//				slog.Info("User feed already exists", "userID", userID, "feed url", feedURL)
-//
-//				http.Redirect(w, r, "/settings", http.StatusFound)
-//
-//				return
-//			}
-//		}
-//
-//		feedTitle := feeder.ExtractSourceFromURL(feedURL)
-//
-//		_, err = db.DB.Exec(`INSERT INTO user_feeds (user_id, feed_url, title) VALUES (?, ?, ?)`, userID, feedURL, feedTitle)
-//		if err != nil {
-//			slog.Error("failed to add user feeed rss", "error", err)
-//
-//			internalServerErrorHandler(w, r, fmt.Errorf("failed to add user rss feed"))
-//
-//			return
-//		}
-//
-//		feedUrls, err := db.GetUserFeedUrls(userID)
-//		if err != nil {
-//			internalServerErrorHandler(w, r, err)
-//
-//			return
-//		}
-//
-//		feeder.FetchAndSaveFeeds(feedUrls)
-//
-//		http.Redirect(w, r, "/settings", http.StatusFound)
-//	default:
-//		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-//	}
-//}
+func addFeedHandler(c *fiber.Ctx) error {
+	userInfo, err := getSessionInfo(c)
+	if err != nil {
+		log.Error("failed to get user info from session: ", err)
+
+		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
+	}
+
+	feedUrl := c.FormValue("feed_url")
+
+	feeds, err := db.GetUserFeeds(userInfo.ID)
+	if err != nil {
+		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
+	}
+
+	for _, feed := range feeds {
+		if feed.FeedURL == feedUrl {
+			log.Warnf("feed %s already exists in %s feeds", feedUrl, userInfo.Username)
+
+			return c.Redirect("/settings#manage-feeds", http.StatusFound)
+		}
+	}
+
+	feedTitle := feeder.ExtractSourceFromURL(feedUrl)
+
+	err = db.AddUserFeed(userInfo.ID, feedTitle, feedUrl)
+	if err != nil {
+		log.Errorf("failed to add %s to %s feeds: %v", feedUrl, userInfo.Username, err)
+
+		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
+	}
+
+	feedUrls, err := db.GetUserFeedUrls(userInfo.ID)
+	if err != nil {
+		log.Errorf("failed to get new %s feeds list: %v", userInfo.Username, err)
+
+		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
+	}
+
+	feeder.FetchAndSaveFeeds(feedUrls)
+
+	return c.Redirect("/settings#manage-feeds", http.StatusFound)
+}
+
+func removeFeedHandler(c *fiber.Ctx) error {
+	userInfo, err := getSessionInfo(c)
+	if err != nil {
+		log.Error("failed to get user info from session: ", err)
+
+		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
+	}
+
+	feedId := c.FormValue("feed_id")
+
+	err = db.RemoveUserFeed(userInfo.ID, feedId)
+	if err != nil {
+		log.Error("failed to remove user %s feed by id: ", userInfo.Username, err)
+
+		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
+	}
+
+	return c.Redirect("/settings#manage-feeds", http.StatusFound)
+}
+
+func autorefreshIntervalChangeHadler(c *fiber.Ctx) error {
+	userInfo, err := getSessionInfo(c)
+	if err != nil {
+		log.Error("failed to get user info from session: ", err)
+
+		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
+	}
+
+	intervalStr := c.FormValue("refresh_interval")
+
+	interval, err := strconv.Atoi(intervalStr)
+	if err != nil || interval < 0 {
+		log.Errorf("failed to parse autorefresh interval, username %s, err %v", userInfo.Username, err)
+
+		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
+	}
+
+	err = db.SetUserRefreshInterval(userInfo.ID, interval)
+	if err != nil {
+		log.Errorf("failed to set %s refresh interval: %v", userInfo.Username, err)
+
+		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
+	}
+
+	return c.Redirect("/settings#autorefresh", http.StatusFound)
+}

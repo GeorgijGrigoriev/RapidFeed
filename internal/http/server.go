@@ -9,24 +9,9 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/filesystem"
 	"github.com/gofiber/fiber/v2/middleware/logger"
-	"github.com/gorilla/sessions"
 )
 
-var store *sessions.CookieStore
-
 func New() {
-	// delete after migrate to gofiber
-	store = sessions.NewCookieStore([]byte(utils.SecretKey))
-
-	// delete after migrate to gofiber
-	store.Options = &sessions.Options{
-		Path:     "/",
-		MaxAge:   86400 * 30,
-		HttpOnly: true,
-		Secure:   false,
-		SameSite: http.SameSiteLaxMode,
-	}
-
 	sessionStore = newSessionStore()
 
 	app := fiber.New(fiber.Config{
@@ -59,29 +44,20 @@ func New() {
 
 	internalApiRoutes := app.Group("/internal/api/", checkSessionMiddleware())
 	internalApiRoutes.Post("/user/settings/password/change", changePasswordHandler)
-	internalApiRoutes.Post("/user/settings/feed/add", nil)
-	internalApiRoutes.Post("/user/settings/feed/delete", nil)
+	internalApiRoutes.Post("/user/settings/feed/add", addFeedHandler)
+	internalApiRoutes.Post("/user/settings/feed/remove", removeFeedHandler)
+	internalApiRoutes.Post("/user/settings/autorefresh/set", autorefreshIntervalChangeHadler)
 	internalApiRoutes.Post("/user/settings/apiToken/add", nil)
 	internalApiRoutes.Post("user/settings/apiToken/revoke", nil)
 
 	adminRoutes := app.Group("/admin/", adminSessionMiddleware())
-	adminRoutes.Get("/admin/users", nil)
+	adminRoutes.Get("/users", adminSettingsRender)
+
+	adminApiRoutes := app.Group("/internal/api/admin/", adminSessionMiddleware())
+	adminApiRoutes.Post("/user/add", addUserHandler)
+	adminApiRoutes.Post("/user/block", blockUserHandler)
+	adminApiRoutes.Post("/user/unblock", unblockUserHandler)
+	adminApiRoutes.Post("/user/feed/remove", removeUserFeedHandler)
 
 	log.Fatal(app.Listen(utils.Listen))
-
-	//http.Handle("/refresh", AuthMiddleware(refreshHandler))
-	//http.Handle("/settings", AuthMiddleware(userSettingsHandler))
-	//http.Handle("/admin/users", AdminMiddleware(adminSettingsHandler))
-	//
-	//http.HandleFunc("/403", forbiddenHandler)
-	//
-	//http.Handle("/static/", http.StripPrefix("/static/", http.FileServerFS(ui.Static)))
-	//
-	//// api section
-	//http.Handle("/api/users/list", TokenAuthMiddleware(nil))
-	//http.Handle("/api/feeds/get", TokenAuthMiddleware(getUserFeedsByTimeRange))
-	//
-	//slog.Info("Server is now listening", "listen address", utils.Listen)
-	//
-	//log.Fatal(http.ListenAndServe(utils.Listen, nil))
 }

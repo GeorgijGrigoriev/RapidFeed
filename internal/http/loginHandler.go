@@ -70,6 +70,19 @@ func loginHandler(c *fiber.Ctx) error {
 }
 
 func loginRender(c *fiber.Ctx) error {
+	userInfo, err := getSessionInfo(c)
+	if err != nil {
+		log.Error("failed to get user id from ctx but here ok: ", err)
+
+		return c.Render(loginTemplate, fiber.Map{
+			"RegisterAllowed": utils.RegisterAllowed,
+		})
+	}
+
+	if userInfo.ID != 0 {
+		return c.Redirect("/", http.StatusFound)
+	}
+
 	return c.Render(loginTemplate, fiber.Map{
 		"RegisterAllowed": utils.RegisterAllowed,
 	})

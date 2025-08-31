@@ -199,3 +199,66 @@ pre {
     display: flex;
     flex-direction: column;
 }
+
+/*settings left menu*/
+.settings-page {
+    display: flex;
+    min-height: 80vh;
+    margin-top: 1rem;
+    gap: 1rem;
+}
+
+.settings-menu {
+    min-width: 180px;
+    flex-shrink: 0;
+    border-right: 1px solid #ddd;
+}
+.settings-menu ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.settings-menu li {
+    margin-bottom: 0.5rem;
+}
+.settings-menu a {
+    display: block;
+    padding: 0.5rem 0.8rem;
+    color: #444;
+    text-decoration: none;
+    border-radius: 4px;
+}
+.settings-menu a:hover,
+.settings-menu a:focus {
+    background: #f0f0f0;
+}
+
+.settings-content {
+    padding-left: 8px;
+    flex: 1;
+}
+.settings-section { display: none; }
+
+.settings-section:target { display: block; }
+
+body:has(#change-password:target) .settings-menu a[href="#change-password"],
+body:has(#autorefresh:target)      .settings-menu a[href="#autorefresh"],
+body:has(#manage-feeds:target)     .settings-menu a[href="#manage-feeds"] {
+    background: #e0e0e0;
+    font-weight: 600;
+}
+
+@media (max-width: 600px) {
+    .settings-page {
+        flex-direction: column;
+    }
+    .settings-menu {
+        border-right: none;
+        border-bottom: 1px solid #ddd;
+        margin-bottom: 1rem;
+    }
+    .settings-menu a {
+        display: inline-block;
+        margin-right: 0.5rem;
+    }
+}

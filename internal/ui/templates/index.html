@@ -4,9 +4,9 @@
 <div class="container pure-g">
     <div class="pure-u-1">
         <div class="control-panel">
-            <form action="/refresh" method="post">
+            <form action="/refresh" method="get">
                 <button class="pure-button" type="submit"><img width="24" height="24"
-                        src="/static/internal/static/refresh-cw.svg"></button>
+                        src="/static/refresh-cw.svg"></button>
             </form>
             <div class="hint-wrapper" style="text-align: center;">
                 <span class="hint">Last update: {{ .PaginatedItems.LastUpdate }}</span>
@@ -29,9 +29,9 @@
         <div class="pagination">
             {{if gt .PaginatedItems.Page 1}}
             <a href="?page=1&per_page={{.PaginatedItems.PerPage}}">
-                <<< /a>
+                <<</a>
                     <a href="?page={{sub .PaginatedItems.Page 1}}&per_page={{.PaginatedItems.PerPage}}">
-                        << /a>
+                        <</a>
                             {{end}}
 
                             {{range $i := seq (max 1 (sub .PaginatedItems.Page 2)) (min .PaginatedItems.TotalPages (add
