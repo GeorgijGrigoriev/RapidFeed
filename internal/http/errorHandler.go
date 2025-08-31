@@ -1,34 +1,10 @@
 package http
 
 import (
-	"log/slog"
-	"strings"
-
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/models"
 )
 
-func internalServerError(err error) string {
-	buf := new(strings.Builder)
-
-	tmpl := PrepareTemplate("internal/templates/error.html",
-		"internal/templates/base.html",
-		"internal/templates/navbar.html")
-
-	data := errorPage{
-		Status:  "500",
-		Title:   "Internal Server Error",
-		Error:   err,
-		Message: "Server can't process your request.",
-		User:    nil,
-	}
-
-	execErr := tmpl.ExecuteTemplate(buf, "base", data)
-	if execErr != nil {
-		slog.Error("can't execute template", "error", execErr)
-	}
-
-	return buf.String()
-}
+const errorTemplate = "templates/error"
 
 func defaultForbiddenMap() models.Error {
 	return models.Error{

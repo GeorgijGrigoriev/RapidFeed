@@ -1,25 +1,30 @@
 package http
 
 import (
+	"net/http"
+
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/db"
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/feeder"
-	"net/http"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/log"
 )
 
-func refreshHandler(w http.ResponseWriter, r *http.Request) {
-	userID, err := checkSession(r)
+func refreshHandler(c *fiber.Ctx) error {
+	userId, err := getUserIdFromCtx(c)
 	if err != nil {
-		internalServerErrorHandler(w, r, err)
+		log.Error("failed to get user id from ctx: ", err)
 
-		return
+		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
 	}
 
-	userFeeds, err := db.GetUserFeedUrls(userID)
+	userFeeds, err := db.GetUserFeedUrls(userId)
 	if err != nil {
-		internalServerErrorHandler(w, r, err)
+		log.Error("failed to get user feed urls: ", err)
+
+		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
 	}
 
 	feeder.FetchAndSaveFeeds(userFeeds)
 
-	http.Redirect(w, r, "/", http.StatusFound)
+	return c.Redirect("/", http.StatusFound)
 }

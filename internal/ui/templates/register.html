@@ -56,11 +56,48 @@
         .register-form button:hover {
             background-color: #1B4F72;
         }
+        .alert {
+            position: relative;
+            padding: 15px 20px 15px 15px;
+            margin: 20px 0;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            font-family: Arial, sans-serif;
+        }
+        .alert-danger {
+            color: #721c24;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        .close-btn {
+            position: absolute;
+            top: 8px;
+            right: 10px;
+            font-size: 20px;
+            line-height: 20px;
+            color: inherit;
+            cursor: pointer;
+            user-select: none;
+        }
+        #alert-close:checked + .alert {
+            display: none;
+        }
+        #alert-close {
+            display: none;
+        }
     </style>
 </head>
 <body>
 <div class="register-container">
     <h1>Register - RapidFeed</h1>
+    {{- if .Error }}
+    <input type="checkbox" id="alert-close">
+    <div class="alert alert-danger">
+        <label for="alert-close" class="close-btn">&times;</label>
+        <strong>Error</strong>
+        <p>{{ .Error }}</p>
+    </div>
+    {{- end }}
     <form action="/register" method="post" class="register-form">
         <label for="username">Username:</label>
         <input type="text" id="username" name="username" required>
