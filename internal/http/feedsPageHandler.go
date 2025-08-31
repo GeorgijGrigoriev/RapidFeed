@@ -2,7 +2,6 @@ package http
 
 import (
 	"fmt"
-	"log"
 	"log/slog"
 	"math"
 	"strconv"
@@ -12,6 +11,7 @@ import (
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/db"
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/feeder"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/log"
 )
 
 func feedsPageHandler(c *fiber.Ctx) error {
@@ -23,9 +23,14 @@ func feedsPageHandler(c *fiber.Ctx) error {
 		totalCount int
 	)
 
-	userID := 1
+	userInfo, err := getSessionInfo(c)
+	if err != nil {
+		log.Error("failed to get user id from ctx: ", err)
 
-	userFeeds, err := db.GetUserFeedUrls(userID)
+		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
+	}
+
+	userFeeds, err := db.GetUserFeedUrls(userInfo.ID)
 	if err != nil {
 		return c.SendString("error")
 	}
@@ -102,13 +107,13 @@ func feedsPageHandler(c *fiber.Ctx) error {
 		}
 	}
 
-	lastUpdate, err := db.GetLastUpdateTS(userID)
+	lastUpdate, err := db.GetLastUpdateTS(userInfo.ID)
 	if err != nil && !strings.Contains(err.Error(), "no rows in result set") {
 
 		return c.SendString("internal")
 	}
 
-	nextUpdate, err := db.GetNextUpdateTS(userID)
+	nextUpdate, err := db.GetNextUpdateTS(userInfo.ID)
 	if err != nil && !strings.Contains(err.Error(), "no rows in result set") {
 		return c.SendString("internal")
 	}
@@ -123,15 +128,9 @@ func feedsPageHandler(c *fiber.Ctx) error {
 		NextUpdate: nextUpdate.Format(time.DateTime),
 	}
 
-	user, err := db.GetUserInfoById(userID)
-	if err != nil {
-
-		return c.SendString("forbidden")
-	}
-
 	return c.Render("templates/index", fiber.Map{
 		"PaginatedItems": paginatedItems,
-		"User":           user,
+		"User":           userInfo,
 		"Title":          "RapidFeed",
 		"NoFeeds":        len(userFeeds) == 0,
 	})
