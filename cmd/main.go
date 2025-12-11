@@ -31,6 +31,8 @@ func init() {
 
 	slog.Info("Try to open database")
 
+	slog.Info("")
+
 	db.InitDB()
 
 	slog.Info("Connection opened")
