@@ -38,6 +38,12 @@ RapidFeed is an open-source RSS reader server written in Go (Golang). Designed w
     make build
    ./rapidfeed-1.0.0-linux-amd64 (for example)
    ```
+    OR
+    ```bash
+    make docker
+    docker run -p 8080:8080 --rm ghcr.io/georgijgrigoriev/rapidfeed:latest
+    ```
+### Contributing
 3. **Configuration**
 
    By default app is configured via environment variables with this default values:

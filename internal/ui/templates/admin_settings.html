@@ -1,0 +1,86 @@
+{{- template "base_header" . }}
+{{- template "navbar" . }}
+<div class="container pure-g">
+    <div class="pure-u-1-1">
+        <h4>Add new user to RapidFeed:</h4>
+        <form action="/internal/api/admin/user/add" method="post" class="pure-form pure-form-aligned">
+            <div class="pure-control-group">
+                <fieldset>
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" name="username" required>
+                </fieldset>
+            </div>
+            <div class="pure-control-group">
+                <fieldset>
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" required>
+                </fieldset>
+            </div>
+            <div class="pure-control-group">
+                <fieldset>
+                    <label for="role">Role:</label>
+                    <select id="role" name="role">
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </fieldset>
+            </div>
+            <div class="pure-control-group">
+                <fieldset>
+                    <button class="pure-button" type="submit">Add User</button>
+                </fieldset>
+            </div>
+        </form>
+
+        <br />
+        <hr />
+        <br />
+
+        <h4>Manage existing users and feeds:</h4>
+        <table class="pure-table">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Role</th>
+                    <th>RSS Feeds</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .UsersWithFeeds}}
+                <tr>
+                    <td>{{.User.Username}}</td>
+                    <td>{{.User.Role}}</td>
+                    <td>
+                        <ul>
+                            {{range .UserFeeds}}
+                            <li>
+                                {{ .Title }} - {{.FeedURL}}
+                                <form action="/internal/api/admin/user/feed/remove" method="post" style="display:inline;">
+                                    <input type="hidden" name="delete_feed_id" value="{{.ID}}">
+                                    <button class="button-warning pure-button" type="submit">Delete Feed</button>
+                                </form>
+                            </li>
+                            {{end}}
+                        </ul>
+                    </td>
+                    <td>
+                        {{if ne .User.Role "blocked"}}
+                        <form action="/internal/api/admin/user/block" method="post" style="display:inline;">
+                            <input type="hidden" name="block_user_id" value="{{.User.ID}}">
+                            <button class="button-warning pure-button" type="submit">Block User</button>
+                        </form>
+                        {{ else }}
+                        <form action="/internal/api/admin/user/unblock" method="post" style="display:inline;">
+                            <input type="hidden" name="unblock_user_id" value="{{.User.ID}}">
+                            <button class="button-warning pure-button" type="submit">Unblock User</button>
+                        </form>
+                        {{end}}
+                    </td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+    </div>
+</div>
+{{- template "base_footer" . }}

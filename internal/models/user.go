@@ -1,5 +1,11 @@
 package models
 
+const (
+	UserRole    = "user"
+	AdminRole   = "admin"
+	BlockedRole = "blocked"
+)
+
 type User struct {
 	ID       int    `json:"id"`
 	Username string `json:"username"`
@@ -11,7 +17,7 @@ type UserFeed struct {
 	ID      int    `json:"id"`
 	UserID  int    `json:"user_id"`
 	FeedURL string `json:"feed_url"`
-	Title   string
+	Title   string `json:"title"`
 }
 
 type UserWithFeeds struct {

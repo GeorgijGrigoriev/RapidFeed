@@ -4,9 +4,10 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/GeorgijGrigoriev/RapidFeed/internal/models"
 	"log/slog"
 	"os"
+
+	"github.com/GeorgijGrigoriev/RapidFeed/internal/models"
 )
 
 var DB *sql.DB
@@ -24,10 +25,12 @@ func InitDB() {
 	DB = db
 }
 
-func GetUserInfo(userID int) (models.User, error) {
+func GetUserInfoById(userID int) (models.User, error) {
 	var user models.User
 
-	err := DB.QueryRow(`SELECT id, username, role FROM users WHERE id = ?`, userID).Scan(&user.ID, &user.Username, &user.Role)
+	err := DB.QueryRow(
+		`SELECT id, username, role FROM users WHERE id = ?`, userID).Scan(
+		&user.ID, &user.Username, &user.Role)
 	if err != nil {
 		slog.Error("failed to get user info", "userID", userID)
 
@@ -35,6 +38,25 @@ func GetUserInfo(userID int) (models.User, error) {
 	}
 
 	return user, nil
+}
+
+func GetUserInfoByUsername(username string) (*models.User, error) {
+	var user models.User
+
+	err := DB.QueryRow(
+		`SELECT id, username, role FROM users WHERE username = ?`, username).Scan(
+		&user.ID, &user.Username, &user.Role)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return &user, nil
+		}
+
+		slog.Error("failed to get user info", "username", username)
+
+		return &user, fmt.Errorf("failed to get user info: %w", err)
+	}
+
+	return &user, nil
 }
 
 func GetUserRole(userID int) (string, error) {
@@ -110,12 +132,14 @@ func GetUserFeeds(userID int) ([]models.UserFeed, error) {
 
 	for rows.Next() {
 		var feed models.UserFeed
+
 		err := rows.Scan(&feed.ID, &feed.FeedURL, &feed.Title)
 		if err != nil {
 			slog.Error("failed to scan user feed rows", "userID", userID)
 
 			return userFeeds, fmt.Errorf("failed to scan user feed rows: %w", err)
 		}
+
 		userFeeds = append(userFeeds, feed)
 	}
 
@@ -159,6 +183,7 @@ func GetUsers() ([]models.User, error) {
 
 	for rows.Next() {
 		var user models.User
+
 		err := rows.Scan(&user.ID, &user.Username, &user.Role)
 		if err != nil {
 			slog.Error("failed to scan users", "error", err)
@@ -173,7 +198,7 @@ func GetUsers() ([]models.User, error) {
 }
 
 func GetUsersWithFeeds() ([]models.UserWithFeeds, error) {
-	var usersWithFeeds []models.UserWithFeeds
+	usersWithFeeds := make([]models.UserWithFeeds, 0)
 
 	users, err := GetUsers()
 	if err != nil {
@@ -191,18 +216,21 @@ func GetUsersWithFeeds() ([]models.UserWithFeeds, error) {
 
 			return usersWithFeeds, fmt.Errorf("failed to get user feeds: %w", err)
 		}
-		defer rows.Close()
 
 		for rows.Next() {
 			var feed models.UserFeed
+
 			err := rows.Scan(&feed.ID, &feed.FeedURL, &feed.Title)
 			if err != nil {
 				slog.Error("failed to scan user feed rows", "user", user)
 
 				return usersWithFeeds, fmt.Errorf("failed to scan user feed rows: %w", err)
 			}
+
 			userFeeds = append(userFeeds, feed)
 		}
+
+		rows.Close()
 
 		usersWithFeeds = append(usersWithFeeds, models.UserWithFeeds{
 			User:      user,

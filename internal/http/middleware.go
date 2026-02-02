@@ -3,59 +3,56 @@ package http
 import (
 	"context"
 	"errors"
-	"fmt"
-	"github.com/GeorgijGrigoriev/RapidFeed/internal/db"
-	"github.com/GeorgijGrigoriev/RapidFeed/internal/utils"
 	"log/slog"
 	"net/http"
 	"strings"
+
+	"github.com/GeorgijGrigoriev/RapidFeed/internal/db"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/log"
 )
 
-func AuthMiddleware(next http.HandlerFunc) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		session, err := store.Get(r, utils.SecretKey)
+const (
+	tokenHeaderKey = "X-Token"
+	tokenInfoKey   = "token-info"
+)
+
+// checkSessionMiddleware - check is user logged-in session exists and save it to ctx.
+func checkSessionMiddleware() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		userInfo, err := getSessionInfo(c)
 		if err != nil {
-			slog.Error("session possibly corrupted, creating new one", "error", err)
+			log.Error("failed to get session info: ", err)
+
+			return c.Redirect("/login", http.StatusFound)
 		}
 
-		userID, ok := session.Values["user_id"].(int)
-
-		if !ok || userID == 0 {
-			http.Redirect(w, r, "/login", http.StatusFound)
-			return
+		if userInfo.ID == 0 {
+			return c.Redirect("/login", http.StatusFound)
 		}
-		next.ServeHTTP(w, r)
-	})
+
+		return c.Next()
+	}
 }
 
-func AdminMiddleware(next http.HandlerFunc) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		session, err := store.Get(r, utils.SecretKey)
+func adminSessionMiddleware() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		userInfo, err := getSessionInfo(c)
 		if err != nil {
-			slog.Error("session possibly corrupted, creating new one", "error", err)
+			log.Error("failed to get session info: ", err)
+			return c.Redirect("/login", http.StatusFound)
 		}
 
-		userID, ok := session.Values["user_id"].(int)
-		if !ok || userID == 0 {
-			http.Redirect(w, r, "/login", http.StatusFound)
-
-			return
-		}
-		role, err := db.GetUserRole(userID)
-		if err != nil {
-			internalServerErrorHandler(w, r, nil)
-
-			return
+		if userInfo.ID == 0 {
+			return c.Redirect("/login", http.StatusFound)
 		}
 
-		if role != "admin" {
-			forbiddenHandler(w, r)
-
-			return
+		if userInfo.Role != "admin" {
+			return c.Status(http.StatusForbidden).Render(errorTemplate, defaultForbiddenMap())
 		}
 
-		next.ServeHTTP(w, r)
-	})
+		return c.Next()
+	}
 }
 
 type contextKey string
@@ -91,16 +88,6 @@ func MCPAuthMiddleware(next http.HandlerFunc) http.Handler {
 		ctx := context.WithValue(r.Context(), userIDContextKey, userID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
-}
-
-func checkSession(r *http.Request) (int, error) {
-	session, _ := store.Get(r, utils.SecretKey)
-	userID, ok := session.Values["user_id"].(int)
-	if !ok || userID == 0 {
-		return 0, fmt.Errorf("user session not found")
-	}
-
-	return userID, nil
 }
 
 func checkToken(r *http.Request) (int, error) {

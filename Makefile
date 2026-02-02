@@ -1,6 +1,7 @@
 BINARY_NAME := rapidfeed
-VERSION     := 1.0.0
+VERSION     := 1.0.4
 SRC         := cmd/main.go
+COMMIT := $(shell git rev-parse --short HEAD)
 
 OS_LIST     := linux darwin windows
 ARCH_LIST   := amd64
@@ -11,7 +12,7 @@ all: bin build
 
 bin:
 	@echo "Building $(BINARY_NAME)-$(VERSION) for current platform..."
-	@go build -o $(BINARY_NAME)-$(VERSION) -ldflags "-X main.version=$(VERSION)" $(SRC)
+	@go build -o $(BINARY_NAME)-$(VERSION) -ldflags "-X main.Version=$(VERSION) -X main.Commit=$(COMMIT)" $(SRC)
 
 build:
 	@echo "Cross‑building for $(OS_LIST)..."
@@ -20,9 +21,12 @@ build:
             echo "  → $(BINARY_NAME)-$(VERSION)-$$os-$$arch"; \
             env GOOS=$$os GOARCH=$$arch \
                 go build -o $(BINARY_NAME)-$(VERSION)-$$os-$$arch \
-                -ldflags "-X main.version=$(VERSION)" $(SRC); \
+                -ldflags "-X main.Version=$(VERSION) -X main.Commit=$(COMMIT)" $(SRC); \
         done \
     done
+
+docker:
+	docker build -t ghcr.io/georgijgrigoriev/rapidfeed:latest --build-arg VERSION=$(VERSION) --build-arg COMMIT=$(COMMIT) -f build/Dockerfile .
 
 clean:
 	@echo "Cleaning up..."

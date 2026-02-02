@@ -1,12 +1,22 @@
 package http
 
 import (
-	"github.com/GeorgijGrigoriev/RapidFeed"
-	"html/template"
+	"net/http"
+
+	"github.com/GeorgijGrigoriev/RapidFeed/internal/ui"
+	"github.com/gofiber/template/html/v2"
 )
 
-func PrepareTemplate(name ...string) *template.Template {
-	tmpl := template.New("").Funcs(template.FuncMap{
+func initTemplateEngine() *html.Engine {
+	engine := html.NewFileSystem(http.FS(ui.HTMLTemplates), ".html")
+
+	engine.AddFuncMap(tmplFuncMap())
+
+	return engine
+}
+
+func tmplFuncMap() map[string]any {
+	return map[string]any{
 		"sub": func(a, b int) int { return a - b },
 		"add": func(a, b int) int { return a + b },
 		"seq": func(start, end int) []int {
@@ -17,26 +27,22 @@ func PrepareTemplate(name ...string) *template.Template {
 			for i := start; i <= end; i++ {
 				seq = append(seq, i)
 			}
+
 			return seq
 		},
 		"max": func(a, b int) int {
 			if a > b {
 				return a
 			}
+
 			return b
 		},
 		"min": func(a, b int) int {
 			if a > b {
 				return b
 			}
+
 			return a
 		},
-	})
-
-	tmpl, err := tmpl.ParseFS(RapidFeed.HTMLTemplates, name...)
-	if err != nil {
-		panic(err)
 	}
-
-	return tmpl
 }

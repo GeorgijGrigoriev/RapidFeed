@@ -1,23 +1,23 @@
 package main
 
 import (
+	"log/slog"
+
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/http"
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/mcp"
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/utils"
-	"log/slog"
 
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/db"
 	_ "github.com/mattn/go-sqlite3"
 )
 
-var feeds = []string{
-	"https://www.cnews.ru/inc/rss/news.xml",
-	"https://www.opennet.ru/opennews/opennews_all_utf.rss",
-	"https://3dnews.ru/breaking/rss/",
-}
+var (
+	Version = "latest"
+	Commit  = "ffffff"
+)
 
 func init() {
-	slog.Info("Initializing RapidFeed", "version", "1.0.0")
+	slog.Info("Initializing RapidFeed", "version", Version, "commit", Commit)
 
 	// Load config vars from env with default fallback
 	utils.Listen = utils.GetStringEnv("LISTEN", ":8080")
@@ -27,15 +27,23 @@ func init() {
 
 	slog.Info("Try to open database")
 
+	slog.Info("")
+
 	db.InitDB()
 
-	slog.Info("Database initialized")
+	slog.Info("Connection opened")
 
 	db.InitSchema() // maybe not necessary call it every time?
 
 	db.CreateDefaultAdmin()
 
 	slog.Info("Database initialized")
+
+	slog.Info("Running database migrations")
+
+	db.RunAllMigrations()
+
+	slog.Info("Database migrations done")
 }
 
 func main() {
