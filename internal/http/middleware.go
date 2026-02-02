@@ -1,10 +1,13 @@
 package http
 
 import (
+	"context"
+	"errors"
+	"log/slog"
 	"net/http"
+	"strings"
 
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/db"
-	"github.com/GeorgijGrigoriev/RapidFeed/internal/models"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/log"
 )
@@ -37,7 +40,6 @@ func adminSessionMiddleware() fiber.Handler {
 		userInfo, err := getSessionInfo(c)
 		if err != nil {
 			log.Error("failed to get session info: ", err)
-
 			return c.Redirect("/login", http.StatusFound)
 		}
 
@@ -45,42 +47,88 @@ func adminSessionMiddleware() fiber.Handler {
 			return c.Redirect("/login", http.StatusFound)
 		}
 
-		if userInfo.Role != models.AdminRole {
-			return c.Render(errorTemplate, defaultForbiddenMap())
+		if userInfo.Role != "admin" {
+			return c.Status(http.StatusForbidden).Render(errorTemplate, defaultForbiddenMap())
 		}
 
 		return c.Next()
 	}
 }
 
-func tokenMiddleware() fiber.Handler {
-	return func(c *fiber.Ctx) error {
-		authHeader := c.Get(tokenHeaderKey)
-		if authHeader == "" {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "Missing Authorization header",
-			})
-		}
+type contextKey string
 
-		t, err := db.GetToken(authHeader)
+const userIDContextKey contextKey = "user_id"
+
+func MCPAuthMiddleware(next http.HandlerFunc) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		userID, err := checkToken(r)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Token error",
-			})
+			if errors.Is(err, db.ErrTokenNotFound) {
+				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+				return
+			}
+
+			slog.Error("mcp token check failed", "error", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
 		}
 
-		t.ExpiresAt
-
-		// Simple token validation - replace with your own logic (e.g., JWT verification)
-		if token != secret {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "Invalid token",
-			})
+		role, err := db.GetUserRole(userID)
+		if err != nil {
+			slog.Error("failed to get user role for mcp auth", "error", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
 		}
 
-		// Optionally set user info in context
-		// c.Locals("user", "third-party-service")
+		if role == "blocked" {
+			http.Error(w, "Forbidden", http.StatusForbidden)
+			return
+		}
 
-		return c.Next()
+		ctx := context.WithValue(r.Context(), userIDContextKey, userID)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func checkToken(r *http.Request) (int, error) {
+	if userID, ok := userIDFromContext(r); ok {
+		return userID, nil
 	}
+
+	token := tokenFromRequest(r)
+	if token == "" {
+		return 0, db.ErrTokenNotFound
+	}
+
+	userID, err := db.GetUserIDByToken(token)
+	if err != nil {
+		return 0, err
+	}
+
+	return userID, nil
+}
+
+func tokenFromRequest(r *http.Request) string {
+	authHeader := strings.TrimSpace(r.Header.Get("Authorization"))
+	if len(authHeader) > 7 && strings.EqualFold(authHeader[:7], "Bearer ") {
+		token := strings.TrimSpace(authHeader[7:])
+		if token != "" {
+			return token
+		}
+	}
+
+	if token := strings.TrimSpace(r.Header.Get("X-MCP-Token")); token != "" {
+		return token
+	}
+
+	if token := strings.TrimSpace(r.URL.Query().Get("token")); token != "" {
+		return token
+	}
+
+	return ""
+}
+
+func userIDFromContext(r *http.Request) (int, bool) {
+	userID, ok := r.Context().Value(userIDContextKey).(int)
+	return userID, ok
 }

@@ -1,0 +1,64 @@
+{{ define "content" }}
+<div class="container pure-g">
+<!--    <div>-->
+<!--        <label for="theme-toggle">Toggle Theme:</label>-->
+<!--        <input type="checkbox" id="theme-toggle" onclick="toggleTheme()">-->
+<!--    </div>-->
+    <div class="pure-u-1-1">
+        <h4>Manage feeds</h4>
+        <form action="/settings" class="pure-form" method="post">
+            <label for="feed_url">RSS Feed URL:</label>
+            <input type="text" id="feed_url" name="feed_url" required>
+
+            <button class="pure-button" type="submit">Add RSS Feed</button>
+        </form>
+
+        <ul>
+            {{range .UserFeeds}}
+            <li>
+                <form action="/settings" method="post" sextractSourceFromURLtyle="display:inline;">
+                    <p><b>{{ .Title }}</b></p>
+                    <p>{{ .FeedURL }}</p>
+                    <input type="hidden" name="feed_id" value="{{.ID}}">
+                    <button class="pure-button" type="submit">Delete</button>
+                </form>
+            </li>
+            {{end}}
+        </ul>
+
+        <h4>Access token</h4>
+        <form action="/settings" class="pure-form" method="post">
+            {{ if .UserToken }}
+            <label for="user_token">Your token:</label>
+            <input type="text" id="user_token" name="user_token" value="{{ .UserToken }}" readonly>
+            <button class="pure-button" type="submit" name="token_action" value="rotate">Rotate token</button>
+            <button class="pure-button" type="submit" name="token_action" value="disable">Disable token</button>
+            {{ else }}
+            <p>No token generated yet.</p>
+            <button class="pure-button" type="submit" name="token_action" value="generate">Generate token</button>
+            {{ end }}
+        </form>
+
+<!--        <script>-->
+<!--            function toggleTheme() {-->
+<!--                const body = document.body;-->
+<!--                if (body.classList.contains('dark-theme')) {-->
+<!--                    body.classList.remove('dark-theme');-->
+<!--                    localStorage.setItem('theme', 'light');-->
+<!--                } else {-->
+<!--                    body.classList.add('dark-theme');-->
+<!--                    localStorage.setItem('theme', 'dark');-->
+<!--                }-->
+<!--            }-->
+
+<!--            window.onload = function() {-->
+<!--                const theme = localStorage.getItem('theme') || 'light';-->
+<!--                if (theme === 'dark') {-->
+<!--                    document.body.classList.add('dark-theme');-->
+<!--                    document.getElementById('theme-toggle').checked = true;-->
+<!--                }-->
+<!--            };-->
+<!--        </script>-->
+    </div>
+</div>
+{{ end }}

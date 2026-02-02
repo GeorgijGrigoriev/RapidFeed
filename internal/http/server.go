@@ -8,7 +8,6 @@ import (
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/utils"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/filesystem"
-	"github.com/gofiber/fiber/v2/middleware/logger"
 )
 
 func New() {
@@ -24,8 +23,6 @@ func New() {
 		PathPrefix: "static",
 		Browse:     false,
 	}))
-
-	app.Use(logger.New())
 
 	app.Get("/login", loginRender)
 	app.Post("/login", loginHandler)
@@ -47,8 +44,8 @@ func New() {
 	internalApiRoutes.Post("/user/settings/feed/add", addFeedHandler)
 	internalApiRoutes.Post("/user/settings/feed/remove", removeFeedHandler)
 	internalApiRoutes.Post("/user/settings/autorefresh/set", autorefreshIntervalChangeHadler)
-	internalApiRoutes.Post("/user/settings/apiToken/add", nil)
-	internalApiRoutes.Post("user/settings/apiToken/revoke", nil)
+	internalApiRoutes.Post("/user/settings/apiToken/add", addUserTokenHandler)
+	internalApiRoutes.Post("/user/settings/apiToken/revoke", revokeUserTokenHandler)
 
 	adminRoutes := app.Group("/admin/", adminSessionMiddleware())
 	adminRoutes.Get("/users", adminSettingsRender)

@@ -1,13 +1,13 @@
 package main
 
 import (
-	"flag"
 	"log/slog"
 
-	"github.com/GeorgijGrigoriev/RapidFeed/internal/db"
-	"github.com/GeorgijGrigoriev/RapidFeed/internal/feeder"
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/http"
+	"github.com/GeorgijGrigoriev/RapidFeed/internal/mcp"
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/utils"
+
+	"github.com/GeorgijGrigoriev/RapidFeed/internal/db"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -19,15 +19,11 @@ var (
 func init() {
 	slog.Info("Initializing RapidFeed", "version", Version, "commit", Commit)
 
-	listenFlag := flag.String("listen", ":8080", "Address to listen on")
-	secretKeyFlag := flag.String("secret-key", "strong-secretkey", "Secret key for sessions")
-	registerAllowedFlag := flag.Bool("registration-allowed", true, "Allow user registration")
-
-	flag.Parse()
-
-	utils.Listen = utils.GetStringEnv("RAPIDFEED_LISTEN", *listenFlag)
-	utils.SecretKey = utils.GetStringEnv("RAPIDFEED_SECRET_KEY", *secretKeyFlag)
-	utils.RegisterAllowed = utils.GetBoolEnv("RAPIDFEED_REGISTRATION_ALLOWED", *registerAllowedFlag)
+	// Load config vars from env with default fallback
+	utils.Listen = utils.GetStringEnv("LISTEN", ":8080")
+	utils.MCPListen = utils.GetStringEnv("MCP_LISTEN", ":8090")
+	utils.SecretKey = utils.GetStringEnv("SECRET_KEY", "strong-secretkey")
+	utils.RegisterAllowed = utils.GetBoolEnv("REGISTRATION_ALLOWED", true)
 
 	slog.Info("Try to open database")
 
@@ -52,11 +48,11 @@ func init() {
 
 func main() {
 	slog.Info("Starting RapidFeed server")
-
 	go func() {
-		slog.Info("Starting background feeds puller")
-		feeder.StartAutoRefresh()
+		slog.Info("Starting RapidFeed MCP server", "listen", utils.MCPListen)
+		if err := mcp.Start(utils.MCPListen); err != nil {
+			slog.Error("MCP server failed", "error", err)
+		}
 	}()
-
 	http.New()
 }
