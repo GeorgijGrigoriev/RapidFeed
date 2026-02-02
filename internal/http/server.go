@@ -53,6 +53,7 @@ func New() {
 	http.Handle("/settings", AuthMiddleware(userSettingsHandler))
 	http.Handle("/admin/users", AdminMiddleware(adminSettingsHandler))
 	http.HandleFunc("/logout", LogoutHandler)
+	http.Handle("/mcp/feeds", MCPAuthMiddleware(mcpFeedsHandler))
 
 	http.HandleFunc("/403", forbiddenHandler)
 

@@ -7,6 +7,7 @@ import (
 
 var (
 	Listen          string
+	MCPListen       string
 	SecretKey       string
 	RegisterAllowed bool
 )

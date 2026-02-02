@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/http"
+	"github.com/GeorgijGrigoriev/RapidFeed/internal/mcp"
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/utils"
 	"log/slog"
 
@@ -20,6 +21,7 @@ func init() {
 
 	// Load config vars from env with default fallback
 	utils.Listen = utils.GetStringEnv("LISTEN", ":8080")
+	utils.MCPListen = utils.GetStringEnv("MCP_LISTEN", ":8090")
 	utils.SecretKey = utils.GetStringEnv("SECRET_KEY", "strong-secretkey")
 	utils.RegisterAllowed = utils.GetBoolEnv("REGISTRATION_ALLOWED", true)
 
@@ -38,5 +40,11 @@ func init() {
 
 func main() {
 	slog.Info("Starting RapidFeed server")
+	go func() {
+		slog.Info("Starting RapidFeed MCP server", "listen", utils.MCPListen)
+		if err := mcp.Start(utils.MCPListen); err != nil {
+			slog.Error("MCP server failed", "error", err)
+		}
+	}()
 	http.New()
 }

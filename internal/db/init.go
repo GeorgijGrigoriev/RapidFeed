@@ -39,6 +39,20 @@ func InitSchema() {
 		os.Exit(1)
 	}
 
+	createUserTokensTableQuery := `CREATE TABLE IF NOT EXISTS user_tokens (
+        "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+        "user_id" INTEGER UNIQUE,
+        "token" TEXT UNIQUE,
+        "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY("user_id") REFERENCES users("id")
+    )`
+	_, err = DB.Exec(createUserTokensTableQuery)
+	if err != nil {
+		slog.Error("failed to create user_tokens table", "error", err)
+
+		os.Exit(1)
+	}
+
 	createUserFeedsTableQuery := `CREATE TABLE IF NOT EXISTS user_feeds (
         "id" INTEGER PRIMARY KEY AUTOINCREMENT,
         "user_id" INTEGER,

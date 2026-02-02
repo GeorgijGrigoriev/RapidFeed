@@ -1,9 +1,11 @@
 package http
 
 import (
+	"errors"
 	"log/slog"
 	"net/http"
 
+	"github.com/GeorgijGrigoriev/RapidFeed/internal/auth"
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/db"
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/feeder"
 )
@@ -32,6 +34,15 @@ func userSettingsHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		userToken, err := db.GetUserToken(userID)
+		if err != nil {
+			if !errors.Is(err, db.ErrTokenNotFound) {
+				internalServerErrorHandler(w, r, err)
+
+				return
+			}
+		}
+
 		tmpl := PrepareTemplate("internal/templates/base.html",
 			"internal/templates/navbar.html",
 			"internal/templates/settings.html")
@@ -39,11 +50,45 @@ func userSettingsHandler(w http.ResponseWriter, r *http.Request) {
 		data := map[string]interface{}{
 			"UserFeeds": userFeeds,
 			"User":      user,
+			"UserToken": userToken,
 			"Title":     "Settings - RapidFeed",
 		}
 
 		tmpl.ExecuteTemplate(w, "base", data)
 	case http.MethodPost:
+		if action := r.FormValue("token_action"); action != "" {
+			switch action {
+			case "generate", "rotate":
+				token, err := auth.GenerateToken(32)
+				if err != nil {
+					internalServerErrorHandler(w, r, err)
+
+					return
+				}
+
+				err = db.UpsertUserToken(userID, token)
+				if err != nil {
+					internalServerErrorHandler(w, r, err)
+
+					return
+				}
+			case "disable":
+				err := db.DeleteUserToken(userID)
+				if err != nil {
+					internalServerErrorHandler(w, r, err)
+
+					return
+				}
+			default:
+				http.Error(w, "Invalid request", http.StatusBadRequest)
+				return
+			}
+
+			http.Redirect(w, r, "/settings", http.StatusFound)
+
+			return
+		}
+
 		if r.FormValue("feed_id") != "" {
 			feedID := r.FormValue("feed_id")
 			_, err := db.DB.Exec(`DELETE FROM user_feeds WHERE id = ? AND user_id = ?`, feedID, userID)
