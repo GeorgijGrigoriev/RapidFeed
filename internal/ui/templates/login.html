@@ -56,11 +56,48 @@
         .login-form button:hover {
             background-color: #1B4F72;
         }
+        .alert {
+            position: relative;
+            padding: 15px 20px 15px 15px;
+            margin: 20px 0;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            font-family: Arial, sans-serif;
+        }
+        .alert-danger {
+            color: #721c24;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        .close-btn {
+            position: absolute;
+            top: 8px;
+            right: 10px;
+            font-size: 20px;
+            line-height: 20px;
+            color: inherit;
+            cursor: pointer;
+            user-select: none;
+        }
+        #alert-close:checked + .alert {
+            display: none;
+        }
+        #alert-close {
+            display: none;
+        }
     </style>
 </head>
 <body>
 <div class="login-container">
     <h1>Login - RapidFeed</h1>
+    {{- if .Error }}
+    <input type="checkbox" id="alert-close">
+    <div class="alert alert-danger">
+        <label for="alert-close" class="close-btn">&times;</label>
+        <strong>Error</strong>
+        <p>{{ .Error }}</p>
+    </div>
+    {{- end }}
     <form action="/login" method="post" class="login-form">
         <label for="username">Username:</label>
         <input type="text" id="username" name="username" required>
@@ -70,11 +107,11 @@
 
         <button type="submit">Login</button>
     </form>
-    {{if .RegisterAllowed}}
+    {{- if .RegisterAllowed }}
     <p style="text-align: center; margin-top: 1rem;">
         Don't have an account? <a href="/register">Register here</a>
     </p>
-    {{end}}
+    {{- end }}
 </div>
 </body>
 </html>

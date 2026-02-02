@@ -26,6 +26,19 @@
             {{end}}
         </ul>
 
+        <h4>Access token</h4>
+        <form action="/settings" class="pure-form" method="post">
+            {{ if .UserToken }}
+            <label for="user_token">Your token:</label>
+            <input type="text" id="user_token" name="user_token" value="{{ .UserToken }}" readonly>
+            <button class="pure-button" type="submit" name="token_action" value="rotate">Rotate token</button>
+            <button class="pure-button" type="submit" name="token_action" value="disable">Disable token</button>
+            {{ else }}
+            <p>No token generated yet.</p>
+            <button class="pure-button" type="submit" name="token_action" value="generate">Generate token</button>
+            {{ end }}
+        </form>
+
 <!--        <script>-->
 <!--            function toggleTheme() {-->
 <!--                const body = document.body;-->

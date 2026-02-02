@@ -1,97 +1,217 @@
 package http
 
 import (
-	"log/slog"
+	"errors"
 	"net/http"
+	"strconv"
 
+	"github.com/GeorgijGrigoriev/RapidFeed/internal/auth"
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/db"
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/feeder"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/log"
 )
 
-func userSettingsHandler(w http.ResponseWriter, r *http.Request) {
-	userID, err := checkSession(r)
+const userSettingsTemplate = "templates/user_settings"
+
+func userSettingsRender(c *fiber.Ctx) error {
+	userInfo, err := getSessionInfo(c)
 	if err != nil {
-		http.Redirect(w, r, "/login", http.StatusFound)
+		log.Error("failed to get user id from ctx: ", err)
 
-		return
+		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
 	}
 
-	switch r.Method {
-	case http.MethodGet:
-		userFeeds, err := db.GetUserFeeds(userID)
-		if err != nil {
-			internalServerErrorHandler(w, r, err)
+	userFeeds, err := db.GetUserFeeds(userInfo.ID)
+	if err != nil {
+		log.Error("failed to get user feeds: ", err)
 
-			return
-		}
-
-		user, err := db.GetUserInfo(userID)
-		if err != nil {
-			internalServerErrorHandler(w, r, err)
-
-			return
-		}
-
-		tmpl := PrepareTemplate("internal/templates/base.html",
-			"internal/templates/navbar.html",
-			"internal/templates/settings.html")
-
-		data := map[string]interface{}{
-			"UserFeeds": userFeeds,
-			"User":      user,
-			"Title":     "Settings - RapidFeed",
-		}
-
-		tmpl.ExecuteTemplate(w, "base", data)
-	case http.MethodPost:
-		if r.FormValue("feed_id") != "" {
-			feedID := r.FormValue("feed_id")
-			_, err := db.DB.Exec(`DELETE FROM user_feeds WHERE id = ? AND user_id = ?`, feedID, userID)
-			if err != nil {
-				http.Error(w, "Failed to delete RSS feed", http.StatusInternalServerError)
-				return
-			}
-		} else {
-			feedURL := r.FormValue("feed_url")
-
-			feeds, err := db.GetUserFeeds(userID)
-			if err != nil {
-				internalServerErrorHandler(w, r, err)
-
-				return
-			}
-
-			for _, feed := range feeds {
-				if feed.FeedURL == feedURL {
-					slog.Info("User feed already exists", "userID", userID, "feed url", feedURL)
-
-					http.Redirect(w, r, "/settings", http.StatusFound)
-
-					return
-				}
-			}
-
-			feedTitle := feeder.ExtractSourceFromURL(feedURL)
-
-			_, err = db.DB.Exec(`INSERT INTO user_feeds (user_id, feed_url, title) VALUES (?, ?, ?)`, userID, feedURL, feedTitle)
-			if err != nil {
-				http.Error(w, "Failed to add RSS feed", http.StatusInternalServerError)
-				return
-			}
-
-		}
-
-		feedUrls, err := db.GetUserFeedUrls(userID)
-		if err != nil {
-			internalServerErrorHandler(w, r, err)
-
-			return
-		}
-
-		feeder.FetchAndSaveFeeds(feedUrls)
-
-		http.Redirect(w, r, "/settings", http.StatusFound)
-	default:
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
 	}
+
+	userToken := ""
+	token, err := db.GetUserToken(userInfo.ID)
+	if err != nil {
+		if !errors.Is(err, db.ErrTokenNotFound) {
+			log.Error("failed to get user token: ", err)
+			return c.Render(errorTemplate, defaultInternalErrorMap(nil))
+		}
+	} else {
+		userToken = token
+	}
+
+	refreshInterval, err := db.GetUserRefreshInterval(userInfo.ID)
+	if err != nil {
+		log.Error("failed to get user refresh interval: ", err)
+
+		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
+	}
+
+	return c.Render(userSettingsTemplate, fiber.Map{
+		"UserFeeds":       userFeeds,
+		"User":            userInfo,
+		"UserToken":       userToken,
+		"Title":           "RapidFeed - Settings",
+		"RefreshInterval": refreshInterval,
+	})
+}
+
+func changePasswordHandler(c *fiber.Ctx) error {
+	currentPassword := c.FormValue("current_password")
+	newPassword := c.FormValue("new_password")
+
+	userInfo, err := getSessionInfo(c)
+	if err != nil {
+		log.Error("failed to get user info from session: ", err)
+
+		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
+	}
+
+	hash, err := db.GetUserHash(userInfo.Username)
+	if err != nil {
+		log.Error("failed to get user hash: ", err)
+	}
+
+	err = auth.CheckPassword(hash, currentPassword)
+	if err != nil {
+		log.Error("wrong current password")
+		//TODO: add alert on settings page like in login page, to clearly show where user was wrong
+		return c.Redirect("/settings", http.StatusConflict)
+	}
+
+	err = db.ChangeUserPassword(userInfo.ID, newPassword)
+	if err != nil {
+		log.Error("failed to change user password: ", err)
+
+		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
+	}
+
+	return c.Redirect("/settings#change-password", http.StatusFound)
+}
+
+func addFeedHandler(c *fiber.Ctx) error {
+	userInfo, err := getSessionInfo(c)
+	if err != nil {
+		log.Error("failed to get user info from session: ", err)
+
+		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
+	}
+
+	feedUrl := c.FormValue("feed_url")
+
+	feeds, err := db.GetUserFeeds(userInfo.ID)
+	if err != nil {
+		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
+	}
+
+	for _, feed := range feeds {
+		if feed.FeedURL == feedUrl {
+			log.Warnf("feed %s already exists in %s feeds", feedUrl, userInfo.Username)
+
+			return c.Redirect("/settings#manage-feeds", http.StatusFound)
+		}
+	}
+
+	feedTitle := feeder.ExtractSourceFromURL(feedUrl)
+
+	err = db.AddUserFeed(userInfo.ID, feedTitle, feedUrl)
+	if err != nil {
+		log.Errorf("failed to add %s to %s feeds: %v", feedUrl, userInfo.Username, err)
+
+		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
+	}
+
+	feedUrls, err := db.GetUserFeedUrls(userInfo.ID)
+	if err != nil {
+		log.Errorf("failed to get new %s feeds list: %v", userInfo.Username, err)
+
+		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
+	}
+
+	feeder.FetchAndSaveFeeds(feedUrls)
+
+	return c.Redirect("/settings#manage-feeds", http.StatusFound)
+}
+
+func removeFeedHandler(c *fiber.Ctx) error {
+	userInfo, err := getSessionInfo(c)
+	if err != nil {
+		log.Error("failed to get user info from session: ", err)
+
+		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
+	}
+
+	feedId := c.FormValue("feed_id")
+
+	err = db.RemoveUserFeed(userInfo.ID, feedId)
+	if err != nil {
+		log.Error("failed to remove user %s feed by id: ", userInfo.Username, err)
+
+		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
+	}
+
+	return c.Redirect("/settings#manage-feeds", http.StatusFound)
+}
+
+func autorefreshIntervalChangeHadler(c *fiber.Ctx) error {
+	userInfo, err := getSessionInfo(c)
+	if err != nil {
+		log.Error("failed to get user info from session: ", err)
+
+		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
+	}
+
+	intervalStr := c.FormValue("refresh_interval")
+
+	interval, err := strconv.Atoi(intervalStr)
+	if err != nil || interval < 0 {
+		log.Errorf("failed to parse autorefresh interval, username %s, err %v", userInfo.Username, err)
+
+		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
+	}
+
+	err = db.SetUserRefreshInterval(userInfo.ID, interval)
+	if err != nil {
+		log.Errorf("failed to set %s refresh interval: %v", userInfo.Username, err)
+
+		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
+	}
+
+	return c.Redirect("/settings#autorefresh", http.StatusFound)
+}
+
+func addUserTokenHandler(c *fiber.Ctx) error {
+	userInfo, err := getSessionInfo(c)
+	if err != nil {
+		log.Error("failed to get user info from session: ", err)
+		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
+	}
+
+	token, err := auth.GenerateToken(32)
+	if err != nil {
+		log.Error("failed to generate token: ", err)
+		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
+	}
+
+	if err := db.UpsertUserToken(userInfo.ID, token); err != nil {
+		log.Error("failed to store user token: ", err)
+		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
+	}
+
+	return c.Redirect("/settings#api-token", http.StatusFound)
+}
+
+func revokeUserTokenHandler(c *fiber.Ctx) error {
+	userInfo, err := getSessionInfo(c)
+	if err != nil {
+		log.Error("failed to get user info from session: ", err)
+		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
+	}
+
+	if err := db.DeleteUserToken(userInfo.ID); err != nil {
+		log.Error("failed to delete user token: ", err)
+		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
+	}
+
+	return c.Redirect("/settings#api-token", http.StatusFound)
 }

@@ -1,12 +1,15 @@
 package db
 
 import (
-	"github.com/GeorgijGrigoriev/RapidFeed/internal/auth"
-	"github.com/GeorgijGrigoriev/RapidFeed/internal/utils"
 	"log"
 	"log/slog"
 	"os"
+
+	"github.com/GeorgijGrigoriev/RapidFeed/internal/auth"
+	"github.com/GeorgijGrigoriev/RapidFeed/internal/utils"
 )
+
+const defaultPasswordLength = 14
 
 func InitSchema() {
 	createTableQuery := `CREATE TABLE IF NOT EXISTS feeds (
@@ -32,9 +35,24 @@ func InitSchema() {
         "password" TEXT,
         "role" TEXT CHECK( role IN ('user', 'admin', 'blocked') )
     )`
+
 	_, err = DB.Exec(createUsersTableQuery)
 	if err != nil {
 		slog.Error("failed to create users table", "error", err)
+
+		os.Exit(1)
+	}
+
+	createUserTokensTableQuery := `CREATE TABLE IF NOT EXISTS user_tokens (
+        "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+        "user_id" INTEGER UNIQUE,
+        "token" TEXT UNIQUE,
+        "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY("user_id") REFERENCES users("id")
+    )`
+	_, err = DB.Exec(createUserTokensTableQuery)
+	if err != nil {
+		slog.Error("failed to create user_tokens table", "error", err)
 
 		os.Exit(1)
 	}
@@ -56,10 +74,38 @@ func InitSchema() {
 	}
 
 	createFeedLinkDateIndex := `CREATE INDEX IF NOT EXISTS idx_feeds_link_feedurl_date ON feeds (link, feed_url, date);`
+
 	_, err = DB.Exec(createFeedLinkDateIndex)
 	if err != nil {
 		slog.Error("failed to create feed_link_date index", "error", err)
 
+		os.Exit(1)
+	}
+
+	_, err = DB.Exec(`
+              CREATE TABLE IF NOT EXISTS user_refresh_settings (
+                      user_id INTEGER PRIMARY KEY,
+                      interval_minutes INTEGER DEFAULT 60,
+					  last_update_ts STRING,
+                      FOREIGN KEY (user_id) REFERENCES users(id)
+              )`)
+	if err != nil {
+		slog.Error("failed to create user_refresh_settings table", "error", err)
+
+		os.Exit(1)
+	}
+
+	createTokenTable := `CREATE TABLE IF NOT EXISTS token_storage (
+		"id" INTEGER PRIMARY KEY AUTOINCREMENT,
+		"user_id" INTEGER,
+		"token" TEXT NOT NULL,
+		"expires_at" INTEGER,
+		"permissions" INTEGER
+	)`
+
+	_, err = DB.Exec(createTokenTable)
+	if err != nil {
+		slog.Error("failed to create token_storage table", "error", err)
 		os.Exit(1)
 	}
 }
@@ -72,7 +118,7 @@ func CreateDefaultAdmin() {
 		log.Fatal(err)
 	}
 
-	adminPass, err := auth.GeneratePassword(14)
+	adminPass, err := auth.GeneratePassword(defaultPasswordLength)
 	if err != nil {
 		slog.Error("failed to generate password for admin", "error", err)
 
@@ -88,12 +134,14 @@ func CreateDefaultAdmin() {
 
 	if !adminExists {
 		insertAdminQuery := `INSERT INTO users (username, password, role) VALUES ('admin', ? , 'admin')`
+
 		_, err = DB.Exec(insertAdminQuery, encryptedPass)
 		if err != nil {
 			slog.Error("failed to create default admin", "error", err)
 
 			os.Exit(1)
 		}
+
 		slog.Info("!!!!!!!!!!")
 		slog.Info("created default admin", "password", adminPass)
 		slog.Info("this password shown only this time, keep it in safe place")

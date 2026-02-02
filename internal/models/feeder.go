@@ -1,4 +1,4 @@
-package feeder
+package models
 
 type FeedItem struct {
 	Title       string
@@ -14,4 +14,6 @@ type PaginatedFeedItems struct {
 	PerPage    int
 	TotalPages int
 	TotalItems int
+	LastUpdate string
+	NextUpdate string
 }

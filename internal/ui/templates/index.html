@@ -1,0 +1,92 @@
+{{- template "base_header" . }}
+{{- template "navbar" . }}
+{{if not .NoFeeds }}
+<div class="container pure-g">
+    <div class="pure-u-1">
+        <div class="control-panel">
+            <form action="/refresh" method="get">
+                <button class="pure-button" type="submit"><img width="24" height="24"
+                        src="/static/refresh-cw.svg"></button>
+            </form>
+            <div class="hint-wrapper" style="text-align: center;">
+                <span class="hint">Last update: {{ .PaginatedItems.LastUpdate }}</span>
+                <span class="hint">Next update: {{ .PaginatedItems.NextUpdate }}</span>
+            </div>
+            <form action="/" method="get" class="pure-form">
+                <label for="per_page">Per page: </label>
+                <select name="per_page" id="per_page" onchange="this.form.submit()">
+                    <option value="10" {{if eq .PaginatedItems.PerPage 10}}selected{{end}}>10</option>
+                    <option value="25" {{if eq .PaginatedItems.PerPage 25}}selected{{end}}>25</option>
+                    <option value="50" {{if eq .PaginatedItems.PerPage 50}}selected{{end}}>50</option>
+                    <option value="100" {{if eq .PaginatedItems.PerPage 100}}selected{{end}}>100</option>
+                    <option value="250" {{if eq .PaginatedItems.PerPage 250}}selected{{end}}>250</option>
+                    <option value="500" {{if eq .PaginatedItems.PerPage 500}}selected{{end}}>500</option>
+                    <option value="1000" {{if eq .PaginatedItems.PerPage 1000}}selected{{end}}>1000</option>
+                </select>
+            </form>
+        </div>
+
+        <div class="pagination">
+            {{if gt .PaginatedItems.Page 1}}
+            <a href="?page=1&per_page={{.PaginatedItems.PerPage}}">
+                <<</a>
+                    <a href="?page={{sub .PaginatedItems.Page 1}}&per_page={{.PaginatedItems.PerPage}}">
+                        <</a>
+                            {{end}}
+
+                            {{range $i := seq (max 1 (sub .PaginatedItems.Page 2)) (min .PaginatedItems.TotalPages (add
+                            .PaginatedItems.Page 2))}}
+                            <a class="{{if eq $i $.PaginatedItems.Page}}active{{end}}"
+                                href="?page={{$i}}&per_page={{$.PaginatedItems.PerPage}}">{{$i}}</a>
+                            {{end}}
+
+                            {{if lt .PaginatedItems.Page .PaginatedItems.TotalPages}}
+                            <a href="?page={{add .PaginatedItems.Page 1}}&per_page={{.PaginatedItems.PerPage}}">></a>
+                            <a href="?page={{.PaginatedItems.TotalPages}}&per_page={{.PaginatedItems.PerPage}}">>></a>
+                            {{end}}
+
+                            <a>Total: {{ .PaginatedItems.TotalItems }}</a>
+        </div>
+
+        <ul class="feed-card">
+            {{range .PaginatedItems.Items}}
+            <li class="feed-card-item">
+                <a href="{{.Link}}">{{.Title}}</a><br>
+                {{if .Description}}
+                <p>{{.Description}}</p>
+                {{end}}
+                <span style="font-size: 0.9em; color: #555;">{{.Date}} - {{.Source}}</span><br>
+            </li>
+            {{end}}
+        </ul>
+
+        <div class="pagination">
+            {{if gt .PaginatedItems.Page 1}}
+            <a href="?page=1&per_page={{.PaginatedItems.PerPage}}">
+                <<< /a>
+                    <a href="?page={{sub .PaginatedItems.Page 1}}&per_page={{.PaginatedItems.PerPage}}">
+                        << /a>
+                            {{end}}
+
+                            {{range $i := seq (max 1 (sub .PaginatedItems.Page 2)) (min .PaginatedItems.TotalPages (add
+                            .PaginatedItems.Page 2))}}
+                            <a class="{{if eq $i $.PaginatedItems.Page}}active{{end}}"
+                                href="?page={{$i}}&per_page={{$.PaginatedItems.PerPage}}">{{$i}}</a>
+                            {{end}}
+
+                            {{if lt .PaginatedItems.Page .PaginatedItems.TotalPages}}
+                            <a href="?page={{add .PaginatedItems.Page 1}}&per_page={{.PaginatedItems.PerPage}}">></a>
+                            <a href="?page={{.PaginatedItems.TotalPages}}&per_page={{.PaginatedItems.PerPage}}">>></a>
+                            {{end}}
+        </div>
+    </div>
+</div>
+{{- else }}
+<div class="container pure-g">
+    <div class="pure-u-1">
+        <p>No feeds added yet.</p>
+        <p>Maybe <a href="/settings">add</a> one or another?</p>
+    </div>
+</div>
+{{- end }}
+{{- template "base_footer" . }}
