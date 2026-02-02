@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// migrationAddNextUpdateTS - run migration on user_refresh_settings table for add additional column
+// migrationAddNextUpdateTS - run migration on user_refresh_settings table for add additional column.
 func migrationAddNextUpdateTS() {
 	_, err := DB.Exec(`ALTER TABLE user_refresh_settings ADD COLUMN next_update_ts TEXT`)
 	if err != nil && !strings.Contains(err.Error(), "duplicate column") {
@@ -16,7 +16,7 @@ func migrationAddNextUpdateTS() {
 	}
 }
 
-// RunAllMigrations - running all possible migrations
+// RunAllMigrations - running all possible migrations.
 func RunAllMigrations() {
 	migrationAddNextUpdateTS()
 }

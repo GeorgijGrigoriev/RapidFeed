@@ -43,6 +43,20 @@ func InitSchema() {
 		os.Exit(1)
 	}
 
+	createUserTokensTableQuery := `CREATE TABLE IF NOT EXISTS user_tokens (
+        "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+        "user_id" INTEGER UNIQUE,
+        "token" TEXT UNIQUE,
+        "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY("user_id") REFERENCES users("id")
+    )`
+	_, err = DB.Exec(createUserTokensTableQuery)
+	if err != nil {
+		slog.Error("failed to create user_tokens table", "error", err)
+
+		os.Exit(1)
+	}
+
 	createUserFeedsTableQuery := `CREATE TABLE IF NOT EXISTS user_feeds (
         "id" INTEGER PRIMARY KEY AUTOINCREMENT,
         "user_id" INTEGER,
@@ -78,6 +92,20 @@ func InitSchema() {
 	if err != nil {
 		slog.Error("failed to create user_refresh_settings table", "error", err)
 
+		os.Exit(1)
+	}
+
+	createTokenTable := `CREATE TABLE IF NOT EXISTS token_storage (
+		"id" INTEGER PRIMARY KEY AUTOINCREMENT,
+		"user_id" INTEGER,
+		"token" TEXT NOT NULL,
+		"expires_at" INTEGER,
+		"permissions" INTEGER
+	)`
+
+	_, err = DB.Exec(createTokenTable)
+	if err != nil {
+		slog.Error("failed to create token_storage table", "error", err)
 		os.Exit(1)
 	}
 }

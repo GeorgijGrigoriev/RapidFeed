@@ -1,4 +1,4 @@
-package feeder
+package models
 
 type FeedItem struct {
 	Title       string

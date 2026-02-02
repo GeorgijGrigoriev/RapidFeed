@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -10,6 +11,8 @@ import (
 )
 
 var DB *sql.DB
+
+var ErrTokenNotFound = errors.New("token not found")
 
 func InitDB() {
 	db, err := sql.Open("sqlite3", "./feeds.db")
@@ -22,10 +25,12 @@ func InitDB() {
 	DB = db
 }
 
-func GetUserInfo(userID int) (models.User, error) {
+func GetUserInfoById(userID int) (models.User, error) {
 	var user models.User
 
-	err := DB.QueryRow(`SELECT id, username, role FROM users WHERE id = ?`, userID).Scan(&user.ID, &user.Username, &user.Role)
+	err := DB.QueryRow(
+		`SELECT id, username, role FROM users WHERE id = ?`, userID).Scan(
+		&user.ID, &user.Username, &user.Role)
 	if err != nil {
 		slog.Error("failed to get user info", "userID", userID)
 
@@ -33,6 +38,25 @@ func GetUserInfo(userID int) (models.User, error) {
 	}
 
 	return user, nil
+}
+
+func GetUserInfoByUsername(username string) (*models.User, error) {
+	var user models.User
+
+	err := DB.QueryRow(
+		`SELECT id, username, role FROM users WHERE username = ?`, username).Scan(
+		&user.ID, &user.Username, &user.Role)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return &user, nil
+		}
+
+		slog.Error("failed to get user info", "username", username)
+
+		return &user, fmt.Errorf("failed to get user info: %w", err)
+	}
+
+	return &user, nil
 }
 
 func GetUserRole(userID int) (string, error) {
@@ -46,6 +70,53 @@ func GetUserRole(userID int) (string, error) {
 	}
 
 	return role, nil
+}
+
+func GetUserIDByToken(token string) (int, error) {
+	var userID int
+
+	err := DB.QueryRow(`SELECT user_id FROM user_tokens WHERE token = ?`, token).Scan(&userID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return 0, ErrTokenNotFound
+		}
+		return 0, fmt.Errorf("failed to get user id by token: %w", err)
+	}
+
+	return userID, nil
+}
+
+func GetUserToken(userID int) (string, error) {
+	var token string
+
+	err := DB.QueryRow(`SELECT token FROM user_tokens WHERE user_id = ?`, userID).Scan(&token)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", ErrTokenNotFound
+		}
+		return "", fmt.Errorf("failed to get user token: %w", err)
+	}
+
+	return token, nil
+}
+
+func UpsertUserToken(userID int, token string) error {
+	_, err := DB.Exec(`INSERT INTO user_tokens (user_id, token) VALUES (?, ?)
+        ON CONFLICT(user_id) DO UPDATE SET token = excluded.token, created_at = CURRENT_TIMESTAMP`, userID, token)
+	if err != nil {
+		return fmt.Errorf("failed to upsert user token: %w", err)
+	}
+
+	return nil
+}
+
+func DeleteUserToken(userID int) error {
+	_, err := DB.Exec(`DELETE FROM user_tokens WHERE user_id = ?`, userID)
+	if err != nil {
+		return fmt.Errorf("failed to delete user token: %w", err)
+	}
+
+	return nil
 }
 
 func GetUserFeeds(userID int) ([]models.UserFeed, error) {
@@ -145,7 +216,6 @@ func GetUsersWithFeeds() ([]models.UserWithFeeds, error) {
 
 			return usersWithFeeds, fmt.Errorf("failed to get user feeds: %w", err)
 		}
-		defer rows.Close()
 
 		for rows.Next() {
 			var feed models.UserFeed
@@ -159,6 +229,8 @@ func GetUsersWithFeeds() ([]models.UserWithFeeds, error) {
 
 			userFeeds = append(userFeeds, feed)
 		}
+
+		rows.Close()
 
 		usersWithFeeds = append(usersWithFeeds, models.UserWithFeeds{
 			User:      user,

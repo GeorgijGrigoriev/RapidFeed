@@ -1,0 +1,133 @@
+{{- template "base_header" . }}
+{{- template "navbar" . }}
+<div class="settings-page">
+
+    <nav class="settings-menu">
+        <ul>
+            <li><a href="/">Back to news</a></li>
+            <hr />
+            <li><a href="#manage-feeds">Manage feeds</a></li>
+            <li><a href="#change-password">Change password</a></li>
+            <li><a href="#autorefresh">Autorefresh feeds</a></li>
+            <li><a href="#api-token">Access token</a></li>
+        </ul>
+    </nav>
+
+    <section class="settings-content">
+
+        <div id="change-password" class="settings-section">
+            <h4>Change password</h4>
+            <form action="/internal/api/user/settings/password/change"
+                  class="pure-form pure-form-aligned" method="post">
+                <div class="pure-control-group">
+                    <fieldset>
+                        <label for="current_password">Current password:</label>
+                        <input type="text" id="current_password" name="current_password" required>
+                    </fieldset>
+                </div>
+                <div class="pure-control-group">
+                    <fieldset>
+                        <label for="new_password">New Password:</label>
+                        <input type="text" id="new_password" name="new_password" required>
+                    </fieldset>
+                </div>
+                <div class="pure-control-group">
+                    <fieldset>
+                        <button class="pure-button" type="submit">Change password</button>
+                    </fieldset>
+                </div>
+            </form>
+        </div>
+
+        <div id="autorefresh" class="settings-section">
+            <h4>Autorefresh feeds</h4>
+            <span class="hint">
+        You can disable autorefresh – just pass 0 to Refresh Interval
+      </span>
+            <form method="post" action="/internal/api/user/settings/autorefresh/set" class="pure-form pure-form-aligned">
+                <div class="pure-control-group">
+                    <fieldset>
+                        <label for="refresh_interval" class="form-label">
+                            Refresh Interval (minutes)
+                        </label>
+                        <input type="number" class="form-control" id="refresh_interval"
+                               name="refresh_interval" min="0" max="1440"
+                               value="{{.RefreshInterval}}" required>
+                    </fieldset>
+                </div>
+                <div class="pure-control-group">
+                    <fieldset>
+                        <button type="submit" class="pure-button">Update Refresh Interval</button>
+                    </fieldset>
+                </div>
+            </form>
+        </div>
+
+        <div id="manage-feeds" class="settings-section">
+            <h4>Manage feeds</h4>
+            <form action="/internal/api/user/settings/feed/add" class="pure-form pure-form-aligned" method="post">
+                <div class="pure-control-group">
+                    <fieldset>
+                        <label for="feed_url">RSS Feed URL:</label>
+                        <input type="text" id="feed_url" name="feed_url" required>
+                    </fieldset>
+                </div>
+                <div class="pure-control-group">
+                    <fieldset>
+                        <button class="pure-button" type="submit">Add RSS Feed</button>
+                    </fieldset>
+                </div>
+            </form>
+
+            <ul>
+                {{range .UserFeeds}}
+                <li>
+                    <form action="/internal/api/user/settings/feed/remove" method="post" style="display:inline;">
+                        <p><b>{{ .Title }}</b></p>
+                        <p>{{ .FeedURL }}</p>
+                        <input type="hidden" name="feed_id" value="{{.ID}}">
+                        <button class="pure-button" type="submit">Delete</button>
+                    </form>
+                </li>
+                {{end}}
+            </ul>
+        </div>
+
+        <div id="api-token" class="settings-section">
+            <h4>Access token</h4>
+            <span class="hint">
+        Use this token for MCP access to your personal feeds
+      </span>
+            {{ if .UserToken }}
+            <div class="pure-control-group">
+                <fieldset>
+                    <label for="user_token">Your token:</label>
+                    <input type="text" id="user_token" name="user_token" value="{{ .UserToken }}" readonly>
+                </fieldset>
+            </div>
+            <div class="pure-control-group">
+                <fieldset>
+                    <form action="/internal/api/user/settings/apiToken/add" method="post" class="pure-form">
+                        <button class="pure-button" type="submit">Rotate token</button>
+                    </form>
+                    <form action="/internal/api/user/settings/apiToken/revoke" method="post" class="pure-form">
+                        <button class="pure-button" type="submit">Disable token</button>
+                    </form>
+                </fieldset>
+            </div>
+            {{ else }}
+            <p>No token generated yet.</p>
+            <div class="pure-control-group">
+                <fieldset>
+                    <form action="/internal/api/user/settings/apiToken/add" method="post" class="pure-form">
+                        <button class="pure-button" type="submit">Generate token</button>
+                    </form>
+                </fieldset>
+            </div>
+            {{ end }}
+        </div>
+
+    </section>
+</div>
+
+{{- template "base_footer" . }}

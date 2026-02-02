@@ -1,4 +1,5 @@
-{{ define "content" }}
+{{- template "base_header" . }}
+{{- template "navbar" . }}
 <div class="error-container">
     <div class="error-card">
         <h1>{{.Status}} - {{.Title}}</h1>
@@ -14,4 +15,4 @@
         <a href="/" class="home-button">Return to Home</a>
     </div>
 </div>
-{{ end }}
+{{- template "base_footer" . }}

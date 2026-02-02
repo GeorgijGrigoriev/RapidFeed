@@ -1,62 +1,60 @@
 package http
 
 import (
-	"fmt"
-	"github.com/GeorgijGrigoriev/RapidFeed"
 	"log"
-	"log/slog"
 	"net/http"
 
+	"github.com/GeorgijGrigoriev/RapidFeed/internal/ui"
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/utils"
-	"github.com/gorilla/sessions"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/filesystem"
 )
 
-var store *sessions.CookieStore
-
 func New() {
-	store = sessions.NewCookieStore([]byte(utils.SecretKey))
+	sessionStore = newSessionStore()
 
-	store.Options = &sessions.Options{
-		Path:     "/",
-		MaxAge:   86400 * 30,
-		HttpOnly: true,
-		Secure:   false,
-		SameSite: http.SameSiteLaxMode,
-	}
+	app := fiber.New(fiber.Config{
+		Views: initTemplateEngine(),
+	})
 
-	http.HandleFunc("/login", LoginHandler)
-
-	if utils.RegisterAllowed {
-		http.HandleFunc("/register", RegisterHandler)
-	}
-
-	http.Handle("/", AuthMiddleware(func(w http.ResponseWriter, r *http.Request) {
-		slog.Info("INCOMING", "URL", r.URL.String(),
-			"Method", r.Method,
-			"IP", r.RemoteAddr,
-			"Proto", r.Proto,
-			"UserAgent", r.UserAgent())
-
-		tmpl := PrepareTemplate("internal/templates/index.html", "internal/templates/navbar.html")
-
-		fmt.Printf("%+v", tmpl.Name())
-
-		if r.URL.Path == "/login" || r.URL.Path == "/register" {
-			handler(PrepareTemplate("internal/templates/index.html", "internal/templates/navbar.html", "internal/templates/base.html"), w, r)
-			return
-		}
-
-		handler(PrepareTemplate("internal/templates/index.html", "internal/templates/navbar.html", "internal/templates/base.html"), w, r)
+	// static
+	app.Use("/static", filesystem.New(filesystem.Config{
+		Root:       http.FS(ui.Static),
+		PathPrefix: "static",
+		Browse:     false,
 	}))
 
-	http.Handle("/refresh", AuthMiddleware(refreshHandler))
-	http.Handle("/settings", AuthMiddleware(userSettingsHandler))
-	http.Handle("/admin/users", AdminMiddleware(adminSettingsHandler))
-	http.HandleFunc("/logout", LogoutHandler)
+	app.Get("/login", loginRender)
+	app.Post("/login", loginHandler)
 
-	http.HandleFunc("/403", forbiddenHandler)
+	if utils.RegisterAllowed {
+		app.Get("/register", registerRender)
+		app.Post("/register", registerHandler)
+	}
 
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServerFS(RapidFeed.Static)))
+	// protected app routes with check session middleware
+	appRoutes := app.Group("/", checkSessionMiddleware())
+	appRoutes.Get("/", feedsPageHandler)
+	appRoutes.Get("/refresh", refreshHandler)
+	appRoutes.Get("/settings", userSettingsRender)
+	appRoutes.Get("/logout", logoutHandler)
 
-	log.Fatal(http.ListenAndServe(utils.Listen, nil))
+	internalApiRoutes := app.Group("/internal/api/", checkSessionMiddleware())
+	internalApiRoutes.Post("/user/settings/password/change", changePasswordHandler)
+	internalApiRoutes.Post("/user/settings/feed/add", addFeedHandler)
+	internalApiRoutes.Post("/user/settings/feed/remove", removeFeedHandler)
+	internalApiRoutes.Post("/user/settings/autorefresh/set", autorefreshIntervalChangeHadler)
+	internalApiRoutes.Post("/user/settings/apiToken/add", addUserTokenHandler)
+	internalApiRoutes.Post("/user/settings/apiToken/revoke", revokeUserTokenHandler)
+
+	adminRoutes := app.Group("/admin/", adminSessionMiddleware())
+	adminRoutes.Get("/users", adminSettingsRender)
+
+	adminApiRoutes := app.Group("/internal/api/admin/", adminSessionMiddleware())
+	adminApiRoutes.Post("/user/add", addUserHandler)
+	adminApiRoutes.Post("/user/block", blockUserHandler)
+	adminApiRoutes.Post("/user/unblock", unblockUserHandler)
+	adminApiRoutes.Post("/user/feed/remove", removeUserFeedHandler)
+
+	log.Fatal(app.Listen(utils.Listen))
 }
