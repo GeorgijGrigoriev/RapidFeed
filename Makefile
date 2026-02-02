@@ -1,5 +1,5 @@
 BINARY_NAME := rapidfeed
-VERSION     := 1.0.5
+VERSION     := 1.0.6
 SRC         := cmd/main.go
 COMMIT := $(shell git rev-parse --short HEAD)
 
@@ -25,8 +25,8 @@ build:
         done \
     done
 
-docker:
-	docker build -t ghcr.io/georgijgrigoriev/rapidfeed:latest --build-arg VERSION=$(VERSION) --build-arg COMMIT=$(COMMIT) -f build/Dockerfile .
+docker-latest:
+	docker build --platform=linux/amd64 -t ghcr.io/georgijgrigoriev/rapidfeed:latest --build-arg VERSION=$(VERSION) --build-arg COMMIT=$(COMMIT) -f build/Dockerfile .
 
 docker-build-version: docker-amd64 docker-arm64
 

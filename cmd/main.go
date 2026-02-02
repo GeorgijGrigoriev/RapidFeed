@@ -28,7 +28,7 @@ func init() {
 
 	slog.Info("Try to open database")
 
-	db.InitDB()
+	db.InitDB(utils.DBPath)
 
 	slog.Info("Connection opened")
 
