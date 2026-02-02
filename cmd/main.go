@@ -24,10 +24,9 @@ func init() {
 	utils.MCPListen = utils.GetStringEnv("MCP_LISTEN", ":8090")
 	utils.SecretKey = utils.GetStringEnv("SECRET_KEY", "strong-secretkey")
 	utils.RegisterAllowed = utils.GetBoolEnv("REGISTRATION_ALLOWED", true)
+	utils.DBPath = utils.GetStringEnv("DB_PATH", "./feeds.db")
 
 	slog.Info("Try to open database")
-
-	slog.Info("")
 
 	db.InitDB()
 

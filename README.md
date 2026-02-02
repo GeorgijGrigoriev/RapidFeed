@@ -23,8 +23,8 @@ RapidFeed is an open-source RSS reader server written in Go (Golang). Designed w
 1. **Clone the Repository**
 
    ```bash
-   git clone https://github.com/yourusername/rapidfeed.git
-   cd rapidfeed
+   git clone https://github.com/GeorgijGrigoriev/RapidFeed.git
+   cd RapidFeed
    ```
 
 2. **Build and Run**
@@ -43,15 +43,16 @@ RapidFeed is an open-source RSS reader server written in Go (Golang). Designed w
     make docker
     docker run -p 8080:8080 --rm ghcr.io/georgijgrigoriev/rapidfeed:latest
     ```
-### Contributing
+### Configuration
 3. **Configuration**
 
-   By default app is configured via environment variables with this default values:
+   By default app is configured via environment variables with these default values:
    ```bash
       LISTEN: ":8080" #host:port where RapidFeed will listen for incoming connections
       MCP_LISTEN: ":8090" #host:port where RapidFeed MCP server will listen
       SECRET_KEY: "strong-secretkey" #consider to change this before first run
       REGISTRATION_ALLOWED: true #allow or disallow self user registration on RapidFeed server
+      DB_PATH: "./feeds.db" #sqlite database path
    ```
 4. **Access the Application**
 
@@ -59,7 +60,7 @@ RapidFeed is an open-source RSS reader server written in Go (Golang). Designed w
 
 ## MCP Usage
 
-RapidFeed exposes an MCP server over Streamable HTTP. MCP tools are available at:
+RapidFeed exposes a separate MCP server over Streamable HTTP. MCP tools are available at:
 
 - `http://localhost:8090/mcp` (use `MCP_LISTEN` to change the port)
 

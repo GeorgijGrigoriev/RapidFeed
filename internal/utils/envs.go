@@ -10,6 +10,7 @@ var (
 	MCPListen       string
 	SecretKey       string
 	RegisterAllowed bool
+	DBPath          string
 )
 
 func GetStringEnv(key, fallback string) string {
