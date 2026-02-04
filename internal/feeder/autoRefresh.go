@@ -41,14 +41,14 @@ func refreshAllUsersFeeds() {
 			continue
 		}
 
-		lastUpdateTS, err := db.GetLastUpdateTS(user.ID)
+		nextUpdateTS, err := db.GetNextUpdateTS(user.ID)
 		if err != nil {
-			slog.Error("failed to get last update TS", "error", err)
+			slog.Error("failed to get next update TS", "error", err)
 
 			continue
 		}
 
-		shouldUpdate := lastUpdateTS.IsZero() || time.Now().After(lastUpdateTS)
+		shouldUpdate := nextUpdateTS.IsZero() || time.Now().After(nextUpdateTS)
 
 		if !shouldUpdate {
 			continue
