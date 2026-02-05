@@ -74,6 +74,18 @@
                 </div>
                 <div class="pure-control-group">
                     <fieldset>
+                        <label for="feed_title">Feed title:</label>
+                        <input type="text" id="feed_title" name="feed_title" placeholder="Optional">
+                    </fieldset>
+                </div>
+                <div class="pure-control-group">
+                    <fieldset>
+                        <label for="feed_tags">Tags:</label>
+                        <input type="text" id="feed_tags" name="feed_tags" placeholder="e.g. tech, security">
+                    </fieldset>
+                </div>
+                <div class="pure-control-group">
+                    <fieldset>
                         <button class="pure-button" type="submit">Add RSS Feed</button>
                     </fieldset>
                 </div>
@@ -85,6 +97,9 @@
                     <form action="/internal/api/user/settings/feed/remove" method="post" style="display:inline;">
                         <p><b>{{ .Title }}</b></p>
                         <p>{{ .FeedURL }}</p>
+                        {{if .Tags}}
+                        <p>Tags: {{ .Tags }}</p>
+                        {{end}}
                         <input type="hidden" name="feed_id" value="{{.ID}}">
                         <button class="pure-button" type="submit">Delete</button>
                     </form>

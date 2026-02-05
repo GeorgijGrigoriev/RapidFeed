@@ -56,6 +56,9 @@
                             {{range .UserFeeds}}
                             <li>
                                 {{ .Title }} - {{.FeedURL}}
+                                {{if .Tags}}
+                                (Tags: {{ .Tags }})
+                                {{end}}
                                 <form action="/internal/api/admin/user/feed/remove" method="post" style="display:inline;">
                                     <input type="hidden" name="delete_feed_id" value="{{.ID}}">
                                     <button class="button-warning pure-button" type="submit">Delete Feed</button>

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/auth"
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/db"
@@ -98,6 +99,8 @@ func addFeedHandler(c *fiber.Ctx) error {
 	}
 
 	feedUrl := c.FormValue("feed_url")
+	feedTitle := strings.TrimSpace(c.FormValue("feed_title"))
+	feedTags := normalizeTags(c.FormValue("feed_tags"))
 
 	feeds, err := db.GetUserFeeds(userInfo.ID)
 	if err != nil {
@@ -112,9 +115,11 @@ func addFeedHandler(c *fiber.Ctx) error {
 		}
 	}
 
-	feedTitle := feeder.ExtractSourceFromURL(feedUrl)
+	if feedTitle == "" {
+		feedTitle = feeder.ExtractSourceFromURL(feedUrl)
+	}
 
-	err = db.AddUserFeed(userInfo.ID, feedTitle, feedUrl)
+	err = db.AddUserFeed(userInfo.ID, feedTitle, feedUrl, feedTags)
 	if err != nil {
 		log.Errorf("failed to add %s to %s feeds: %v", feedUrl, userInfo.Username, err)
 
@@ -131,6 +136,29 @@ func addFeedHandler(c *fiber.Ctx) error {
 	feeder.FetchAndSaveFeeds(feedUrls)
 
 	return c.Redirect("/settings#manage-feeds", http.StatusFound)
+}
+
+func normalizeTags(rawTags string) string {
+	parts := strings.Split(rawTags, ",")
+	seen := make(map[string]struct{})
+	cleaned := make([]string, 0, len(parts))
+
+	for _, part := range parts {
+		tag := strings.TrimSpace(part)
+		if tag == "" {
+			continue
+		}
+
+		key := strings.ToLower(tag)
+		if _, ok := seen[key]; ok {
+			continue
+		}
+
+		seen[key] = struct{}{}
+		cleaned = append(cleaned, tag)
+	}
+
+	return strings.Join(cleaned, ", ")
 }
 
 func removeFeedHandler(c *fiber.Ctx) error {

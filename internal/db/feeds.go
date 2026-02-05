@@ -10,8 +10,14 @@ import (
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/models"
 )
 
-func AddUserFeed(userId int, feedTitle, feedUrl string) error {
-	_, err := DB.Exec(`INSERT INTO user_feeds (user_id, feed_url, title) VALUES (?, ?, ?)`, userId, feedUrl, feedTitle)
+func AddUserFeed(userId int, feedTitle, feedUrl, feedTags string) error {
+	_, err := DB.Exec(
+		`INSERT INTO user_feeds (user_id, feed_url, title, category) VALUES (?, ?, ?, ?)`,
+		userId,
+		feedUrl,
+		feedTitle,
+		feedTags,
+	)
 	if err != nil {
 		return fmt.Errorf("failed to add feed url %s to %d feeds: %w", feedUrl, userId, err)
 	}
