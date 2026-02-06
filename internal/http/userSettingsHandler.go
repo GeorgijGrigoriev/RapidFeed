@@ -1,10 +1,12 @@
 package http
 
 import (
+	"database/sql"
 	"errors"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/auth"
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/db"
@@ -48,12 +50,39 @@ func userSettingsRender(c *fiber.Ctx) error {
 		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
 	}
 
+	lastUpdate, err := db.GetLastUpdateTS(userInfo.ID)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		log.Errorf("failed to get last update ts for %s feeds: %v", userInfo.Username, err)
+
+		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
+	}
+
+	nextUpdate, err := db.GetNextUpdateTS(userInfo.ID)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		log.Errorf("failed to get next update ts for %s feeds: %v", userInfo.Username, err)
+
+		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
+	}
+
+	luStr := lastUpdate.Format(time.DateTime)
+	nuStr := nextUpdate.Format(time.DateTime)
+
+	if lastUpdate.IsZero() {
+		luStr = "Not performed yet"
+	}
+
+	if nextUpdate.IsZero() {
+		nuStr = "Will be performed soon"
+	}
+
 	return c.Render(userSettingsTemplate, fiber.Map{
 		"UserFeeds":       userFeeds,
 		"User":            userInfo,
 		"UserToken":       userToken,
 		"Title":           "RapidFeed - Settings",
 		"RefreshInterval": refreshInterval,
+		"LastUpdate":      luStr,
+		"NextUpdate":      nuStr,
 	})
 }
 
