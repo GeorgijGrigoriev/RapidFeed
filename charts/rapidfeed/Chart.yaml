@@ -1,0 +1,16 @@
+apiVersion: v2
+name: rapidfeed
+description: A Helm chart for RapidFeed - A Go-based feed aggregation application
+type: application
+version: 0.1.0
+appVersion: 1.0.6
+keywords:
+  - feed
+  - aggregator
+  - go
+maintainers:
+  - name: Georgij Grigoriev
+    email: grgeorgij@gmail.com
+home: https://github.com/GeorgijGrigoriev/RapidFeed
+sources:
+  - https://github.com/GeorgijGrigoriev/RapidFeed
