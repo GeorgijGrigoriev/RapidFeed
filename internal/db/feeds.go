@@ -65,7 +65,11 @@ func GetTotalUserFeedItemsCount(userFeeds []string) (int, error) {
 	if err != nil {
 		return 0, fmt.Errorf("failed to query user feed items count: %w", err)
 	}
-	defer rows.Close()
+	defer func() {
+		if closeErr := rows.Close(); closeErr != nil {
+			slog.Error("failed to close feed count rows", "error", closeErr)
+		}
+	}()
 
 	for rows.Next() {
 		err := rows.Scan(&totalCount)
@@ -101,7 +105,11 @@ func GetUserFeedItems(userID int, userFeeds []string, perPage, offset int) ([]mo
 		return nil, fmt.Errorf("failed to get user feed items: %w", err)
 	}
 
-	defer rows.Close()
+	defer func() {
+		if closeErr := rows.Close(); closeErr != nil {
+			slog.Error("failed to close user feed items rows", "error", closeErr)
+		}
+	}()
 
 	for rows.Next() {
 		var item models.FeedItem

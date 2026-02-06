@@ -12,11 +12,6 @@ import (
 	"github.com/gofiber/fiber/v2/log"
 )
 
-const (
-	tokenHeaderKey = "X-Token"
-	tokenInfoKey   = "token-info"
-)
-
 // checkSessionMiddleware - check is user logged-in session exists and save it to ctx.
 func checkSessionMiddleware() fiber.Handler {
 	return func(c *fiber.Ctx) error {

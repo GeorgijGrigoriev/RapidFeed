@@ -125,13 +125,17 @@ func (t *httpTransport) handleClientMessage(w http.ResponseWriter, r *http.Reque
 		http.Error(w, "Content-Type must be application/json", http.StatusBadRequest)
 		return
 	}
+	defer func() {
+		if err := r.Body.Close(); err != nil {
+			t.GetLogger().Error("Failed to close request body", "error", err)
+		}
+	}()
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, "Failed to read request body", http.StatusBadRequest)
 		return
 	}
-	defer r.Body.Close()
 
 	var session *sessionInfo
 	sessionID := r.Header.Get("MCP-Session-ID")
@@ -233,7 +237,10 @@ func (t *httpTransport) handleSSEStream(w http.ResponseWriter, r *http.Request) 
 			return
 		default:
 			time.Sleep(1 * time.Second)
-			fmt.Fprintf(w, "data: {\"type\":\"heartbeat\",\"timestamp\":\"%s\"}\n\n", time.Now().Format(time.RFC3339))
+			if _, err := fmt.Fprintf(w, "data: {\"type\":\"heartbeat\",\"timestamp\":\"%s\"}\n\n", time.Now().Format(time.RFC3339)); err != nil {
+				t.GetLogger().Error("Failed to write SSE heartbeat", "error", err)
+				return
+			}
 			flusher.Flush()
 		}
 	}
