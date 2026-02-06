@@ -11,11 +11,6 @@ import (
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/models"
 )
 
-const (
-	permissionUser int = iota
-	permissionAdmin
-)
-
 func GetToken(token string) (models.Token, error) {
 	var tokenInfo models.Token
 

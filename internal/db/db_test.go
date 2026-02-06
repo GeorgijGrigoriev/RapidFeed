@@ -16,7 +16,11 @@ func setupTestDB(t *testing.T) {
 		t.Fatalf("failed to open in‑memory sqlite: %v", err)
 	}
 
-	t.Cleanup(func() { db.Close() })
+	t.Cleanup(func() {
+		if err := db.Close(); err != nil {
+			t.Errorf("failed to close test db: %v", err)
+		}
+	})
 
 	DB = db
 

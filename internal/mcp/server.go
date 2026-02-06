@@ -159,7 +159,7 @@ func userIDFromToken(token string) (int, error) {
 	return userID, nil
 }
 
-func fetchUserFeedItemsByPeriod(userID int, period string) ([]feedItem, error) {
+func fetchUserFeedItemsByPeriod(userID int, period string) (items []feedItem, err error) {
 	userFeeds, err := db.GetUserFeedUrls(userID)
 	if err != nil {
 		return nil, err
@@ -189,9 +189,13 @@ func fetchUserFeedItemsByPeriod(userID int, period string) ([]feedItem, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		if closeErr := rows.Close(); closeErr != nil && err == nil {
+			err = closeErr
+		}
+	}()
 
-	var items []feedItem
+	items = make([]feedItem, 0)
 	for rows.Next() {
 		var item feedItem
 		if err := rows.Scan(&item.Title, &item.Link, &item.Date, &item.Source, &item.Description); err != nil {
@@ -206,7 +210,7 @@ func fetchUserFeedItemsByPeriod(userID int, period string) ([]feedItem, error) {
 	return items, nil
 }
 
-func fetchUserFeedItemsByLimit(userID int, limit int) ([]feedItem, error) {
+func fetchUserFeedItemsByLimit(userID int, limit int) (items []feedItem, err error) {
 	userFeeds, err := db.GetUserFeedUrls(userID)
 	if err != nil {
 		return nil, err
@@ -231,9 +235,13 @@ func fetchUserFeedItemsByLimit(userID int, limit int) ([]feedItem, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		if closeErr := rows.Close(); closeErr != nil && err == nil {
+			err = closeErr
+		}
+	}()
 
-	var items []feedItem
+	items = make([]feedItem, 0)
 	for rows.Next() {
 		var item feedItem
 		if err := rows.Scan(&item.Title, &item.Link, &item.Date, &item.Source, &item.Description); err != nil {

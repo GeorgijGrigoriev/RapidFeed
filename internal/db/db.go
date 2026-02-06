@@ -128,7 +128,11 @@ func GetUserFeeds(userID int) ([]models.UserFeed, error) {
 
 		return userFeeds, fmt.Errorf("failed to get user feeds: %w", err)
 	}
-	defer rows.Close()
+	defer func() {
+		if closeErr := rows.Close(); closeErr != nil {
+			slog.Error("failed to close user feeds rows", "userID", userID, "error", closeErr)
+		}
+	}()
 
 	for rows.Next() {
 		var feed models.UserFeed
@@ -154,7 +158,11 @@ func GetUserFeedUrls(userID int) ([]string, error) {
 		return nil, fmt.Errorf("failed to select user feeds, error: %w", err)
 	}
 
-	defer rows.Close()
+	defer func() {
+		if closeErr := rows.Close(); closeErr != nil {
+			slog.Error("failed to close user feed urls rows", "userID", userID, "error", closeErr)
+		}
+	}()
 
 	for rows.Next() {
 		var url string
@@ -179,7 +187,11 @@ func GetUsers() ([]models.User, error) {
 
 		return users, fmt.Errorf("failed to get users: %w", err)
 	}
-	defer rows.Close()
+	defer func() {
+		if closeErr := rows.Close(); closeErr != nil {
+			slog.Error("failed to close users rows", "error", closeErr)
+		}
+	}()
 
 	for rows.Next() {
 		var user models.User
@@ -230,7 +242,11 @@ func GetUsersWithFeeds() ([]models.UserWithFeeds, error) {
 			userFeeds = append(userFeeds, feed)
 		}
 
-		rows.Close()
+		if err := rows.Close(); err != nil {
+			slog.Error("failed to close user feed rows", "userID", user.ID, "error", err)
+
+			return usersWithFeeds, fmt.Errorf("failed to close user feed rows: %w", err)
+		}
 
 		usersWithFeeds = append(usersWithFeeds, models.UserWithFeeds{
 			User:      user,
