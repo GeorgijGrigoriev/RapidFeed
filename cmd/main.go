@@ -3,6 +3,7 @@ package main
 import (
 	"log/slog"
 
+	"github.com/GeorgijGrigoriev/RapidFeed/internal/feeder"
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/http"
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/mcp"
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/utils"
@@ -47,6 +48,7 @@ func init() {
 
 func main() {
 	slog.Info("Starting RapidFeed server")
+	go feeder.StartAutoRefresh()
 	go func() {
 		slog.Info("Starting RapidFeed MCP server", "listen", utils.MCPListen)
 		if err := mcp.Start(utils.MCPListen); err != nil {

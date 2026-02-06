@@ -69,6 +69,10 @@ func GetNextUpdateTS(userID int) (time.Time, error) {
 
 	err := DB.QueryRow(query, userID).Scan(&timestampStr)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return time.Time{}, nil
+		}
+
 		return time.Time{}, err
 	}
 
@@ -94,6 +98,10 @@ func GetLastUpdateTS(userID int) (time.Time, error) {
 
 	err := DB.QueryRow(query, userID).Scan(&timestampStr)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return time.Time{}, nil
+		}
+
 		return time.Time{}, err
 	}
 
