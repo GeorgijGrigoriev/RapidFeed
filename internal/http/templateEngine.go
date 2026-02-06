@@ -2,6 +2,7 @@ package http
 
 import (
 	"net/http"
+	"net/url"
 
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/ui"
 	"github.com/gofiber/template/html/v2"
@@ -17,8 +18,9 @@ func initTemplateEngine() *html.Engine {
 
 func tmplFuncMap() map[string]any {
 	return map[string]any{
-		"sub": func(a, b int) int { return a - b },
-		"add": func(a, b int) int { return a + b },
+		"sub":      func(a, b int) int { return a - b },
+		"add":      func(a, b int) int { return a + b },
+		"urlquery": func(raw string) string { return url.QueryEscape(raw) },
 		"seq": func(start, end int) []int {
 			if start > end {
 				start, end = end, start

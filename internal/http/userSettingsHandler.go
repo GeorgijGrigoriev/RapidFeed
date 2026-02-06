@@ -1,9 +1,12 @@
 package http
 
 import (
+	"database/sql"
 	"errors"
 	"net/http"
 	"strconv"
+	"strings"
+	"time"
 
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/auth"
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/db"
@@ -47,12 +50,39 @@ func userSettingsRender(c *fiber.Ctx) error {
 		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
 	}
 
+	lastUpdate, err := db.GetLastUpdateTS(userInfo.ID)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		log.Errorf("failed to get last update ts for %s feeds: %v", userInfo.Username, err)
+
+		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
+	}
+
+	nextUpdate, err := db.GetNextUpdateTS(userInfo.ID)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		log.Errorf("failed to get next update ts for %s feeds: %v", userInfo.Username, err)
+
+		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
+	}
+
+	luStr := lastUpdate.Format(time.DateTime)
+	nuStr := nextUpdate.Format(time.DateTime)
+
+	if lastUpdate.IsZero() {
+		luStr = "Not performed yet"
+	}
+
+	if nextUpdate.IsZero() {
+		nuStr = "Will be performed soon"
+	}
+
 	return c.Render(userSettingsTemplate, fiber.Map{
 		"UserFeeds":       userFeeds,
 		"User":            userInfo,
 		"UserToken":       userToken,
 		"Title":           "RapidFeed - Settings",
 		"RefreshInterval": refreshInterval,
+		"LastUpdate":      luStr,
+		"NextUpdate":      nuStr,
 	})
 }
 
@@ -98,6 +128,8 @@ func addFeedHandler(c *fiber.Ctx) error {
 	}
 
 	feedUrl := c.FormValue("feed_url")
+	feedTitle := strings.TrimSpace(c.FormValue("feed_title"))
+	feedTags := normalizeTags(c.FormValue("feed_tags"))
 
 	feeds, err := db.GetUserFeeds(userInfo.ID)
 	if err != nil {
@@ -112,9 +144,11 @@ func addFeedHandler(c *fiber.Ctx) error {
 		}
 	}
 
-	feedTitle := feeder.ExtractSourceFromURL(feedUrl)
+	if feedTitle == "" {
+		feedTitle = feeder.ExtractSourceFromURL(feedUrl)
+	}
 
-	err = db.AddUserFeed(userInfo.ID, feedTitle, feedUrl)
+	err = db.AddUserFeed(userInfo.ID, feedTitle, feedUrl, feedTags)
 	if err != nil {
 		log.Errorf("failed to add %s to %s feeds: %v", feedUrl, userInfo.Username, err)
 
@@ -133,6 +167,29 @@ func addFeedHandler(c *fiber.Ctx) error {
 	return c.Redirect("/settings#manage-feeds", http.StatusFound)
 }
 
+func normalizeTags(rawTags string) string {
+	parts := strings.Split(rawTags, ",")
+	seen := make(map[string]struct{})
+	cleaned := make([]string, 0, len(parts))
+
+	for _, part := range parts {
+		tag := strings.TrimSpace(part)
+		if tag == "" {
+			continue
+		}
+
+		key := strings.ToLower(tag)
+		if _, ok := seen[key]; ok {
+			continue
+		}
+
+		seen[key] = struct{}{}
+		cleaned = append(cleaned, tag)
+	}
+
+	return strings.Join(cleaned, ", ")
+}
+
 func removeFeedHandler(c *fiber.Ctx) error {
 	userInfo, err := getSessionInfo(c)
 	if err != nil {
@@ -146,6 +203,32 @@ func removeFeedHandler(c *fiber.Ctx) error {
 	err = db.RemoveUserFeed(userInfo.ID, feedId)
 	if err != nil {
 		log.Error("failed to remove user %s feed by id: ", userInfo.Username, err)
+
+		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
+	}
+
+	return c.Redirect("/settings#manage-feeds", http.StatusFound)
+}
+
+func updateFeedHandler(c *fiber.Ctx) error {
+	userInfo, err := getSessionInfo(c)
+	if err != nil {
+		log.Error("failed to get user info from session: ", err)
+
+		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
+	}
+
+	feedId := c.FormValue("feed_id")
+	if feedId == "" {
+		log.Error("missing feed id for update")
+		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
+	}
+
+	feedTitle := strings.TrimSpace(c.FormValue("feed_title"))
+	feedTags := normalizeTags(c.FormValue("feed_tags"))
+
+	if err := db.UpdateUserFeed(userInfo.ID, feedId, feedTitle, feedTags); err != nil {
+		log.Error("failed to update user feed: ", err)
 
 		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
 	}

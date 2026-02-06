@@ -20,8 +20,10 @@ h3 {
 
 .control-panel {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
     margin-bottom: 1.5rem;
 }
 
@@ -30,9 +32,37 @@ h3 {
     align-items: center;
 }
 
+.control-panel .filter-group {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    column-gap: 0.75rem;
+    row-gap: 0.5rem;
+}
+
+.control-panel .filter-group .filter-form {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    column-gap: 0.5rem;
+    width: 100%;
+}
+
+.control-panel .filter-group .filter-form select {
+    width: 100%;
+    min-width: 10rem;
+}
+
 .feed-card {
     list-style-type: none;
     padding-left: 0;
+}
+
+.empty-state {
+    text-align: center;
+    font-size: 1.2em;
+    margin: 2.5rem 0;
 }
 
 .feed-card-item {

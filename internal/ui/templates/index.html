@@ -4,14 +4,6 @@
 <div class="container pure-g">
     <div class="pure-u-1">
         <div class="control-panel">
-            <form action="/refresh" method="get">
-                <button class="pure-button" type="submit"><img width="24" height="24"
-                        src="/static/refresh-cw.svg"></button>
-            </form>
-            <div class="hint-wrapper" style="text-align: center;">
-                <span class="hint">Last update: {{ .PaginatedItems.LastUpdate }}</span>
-                <span class="hint">Next update: {{ .PaginatedItems.NextUpdate }}</span>
-            </div>
             <form action="/" method="get" class="pure-form">
                 <label for="per_page">Per page: </label>
                 <select name="per_page" id="per_page" onchange="this.form.submit()">
@@ -23,26 +15,63 @@
                     <option value="500" {{if eq .PaginatedItems.PerPage 500}}selected{{end}}>500</option>
                     <option value="1000" {{if eq .PaginatedItems.PerPage 1000}}selected{{end}}>1000</option>
                 </select>
+                {{if .Filters.Tag}}
+                <input type="hidden" name="tag" value="{{.Filters.Tag}}">
+                {{end}}
+                {{if .Filters.Source}}
+                <input type="hidden" name="source" value="{{.Filters.Source}}">
+                {{end}}
             </form>
+            <div class="filter-group">
+                <form action="/" method="get" class="pure-form filter-form">
+                    <label for="source_filter">Source:</label>
+                    <select name="source" id="source_filter" onchange="this.form.submit()">
+                        <option value="">All sources</option>
+                        {{range .UserFeeds}}
+                        <option value="{{.FeedURL}}" {{if eq $.Filters.Source .FeedURL}}selected{{end}}>
+                            {{if .Title}}{{.Title}}{{else}}{{.FeedURL}}{{end}}
+                        </option>
+                        {{end}}
+                    </select>
+                    <input type="hidden" name="per_page" value="{{.PaginatedItems.PerPage}}">
+                    {{if .Filters.Tag}}
+                    <input type="hidden" name="tag" value="{{.Filters.Tag}}">
+                    {{end}}
+                </form>
+                <form action="/" method="get" class="pure-form filter-form">
+                    <label for="tag_filter">Tag:</label>
+                    <select name="tag" id="tag_filter" onchange="this.form.submit()">
+                        <option value="">All tags</option>
+                        {{range .Tags}}
+                        <option value="{{.}}" {{if eq $.Filters.Tag .}}selected{{end}}>{{.}}</option>
+                        {{end}}
+                    </select>
+                    <input type="hidden" name="per_page" value="{{.PaginatedItems.PerPage}}">
+                    {{if .Filters.Source}}
+                    <input type="hidden" name="source" value="{{.Filters.Source}}">
+                    {{end}}
+                </form>
+            </div>
         </div>
 
+        {{if gt .PaginatedItems.TotalItems 0}}
         <div class="pagination">
             {{if gt .PaginatedItems.Page 1}}
-            <a href="?page=1&per_page={{.PaginatedItems.PerPage}}">
+            <a href="?page=1&per_page={{.PaginatedItems.PerPage}}{{if .Filters.Tag}}&tag={{urlquery .Filters.Tag}}{{end}}{{if .Filters.Source}}&source={{urlquery .Filters.Source}}{{end}}">
                 <<</a>
-                    <a href="?page={{sub .PaginatedItems.Page 1}}&per_page={{.PaginatedItems.PerPage}}">
+                    <a href="?page={{sub .PaginatedItems.Page 1}}&per_page={{.PaginatedItems.PerPage}}{{if .Filters.Tag}}&tag={{urlquery .Filters.Tag}}{{end}}{{if .Filters.Source}}&source={{urlquery .Filters.Source}}{{end}}">
                         <</a>
                             {{end}}
 
                             {{range $i := seq (max 1 (sub .PaginatedItems.Page 2)) (min .PaginatedItems.TotalPages (add
                             .PaginatedItems.Page 2))}}
                             <a class="{{if eq $i $.PaginatedItems.Page}}active{{end}}"
-                                href="?page={{$i}}&per_page={{$.PaginatedItems.PerPage}}">{{$i}}</a>
+                                href="?page={{$i}}&per_page={{$.PaginatedItems.PerPage}}{{if $.Filters.Tag}}&tag={{urlquery $.Filters.Tag}}{{end}}{{if $.Filters.Source}}&source={{urlquery $.Filters.Source}}{{end}}">{{$i}}</a>
                             {{end}}
 
                             {{if lt .PaginatedItems.Page .PaginatedItems.TotalPages}}
-                            <a href="?page={{add .PaginatedItems.Page 1}}&per_page={{.PaginatedItems.PerPage}}">></a>
-                            <a href="?page={{.PaginatedItems.TotalPages}}&per_page={{.PaginatedItems.PerPage}}">>></a>
+                            <a href="?page={{add .PaginatedItems.Page 1}}&per_page={{.PaginatedItems.PerPage}}{{if .Filters.Tag}}&tag={{urlquery .Filters.Tag}}{{end}}{{if .Filters.Source}}&source={{urlquery .Filters.Source}}{{end}}">></a>
+                            <a href="?page={{.PaginatedItems.TotalPages}}&per_page={{.PaginatedItems.PerPage}}{{if .Filters.Tag}}&tag={{urlquery .Filters.Tag}}{{end}}{{if .Filters.Source}}&source={{urlquery .Filters.Source}}{{end}}">>></a>
                             {{end}}
 
                             <a>Total: {{ .PaginatedItems.TotalItems }}</a>
@@ -62,23 +91,26 @@
 
         <div class="pagination">
             {{if gt .PaginatedItems.Page 1}}
-            <a href="?page=1&per_page={{.PaginatedItems.PerPage}}">
+            <a href="?page=1&per_page={{.PaginatedItems.PerPage}}{{if .Filters.Tag}}&tag={{urlquery .Filters.Tag}}{{end}}{{if .Filters.Source}}&source={{urlquery .Filters.Source}}{{end}}">
                 <<< /a>
-                    <a href="?page={{sub .PaginatedItems.Page 1}}&per_page={{.PaginatedItems.PerPage}}">
+                    <a href="?page={{sub .PaginatedItems.Page 1}}&per_page={{.PaginatedItems.PerPage}}{{if .Filters.Tag}}&tag={{urlquery .Filters.Tag}}{{end}}{{if .Filters.Source}}&source={{urlquery .Filters.Source}}{{end}}">
                         << /a>
                             {{end}}
 
                             {{range $i := seq (max 1 (sub .PaginatedItems.Page 2)) (min .PaginatedItems.TotalPages (add
                             .PaginatedItems.Page 2))}}
                             <a class="{{if eq $i $.PaginatedItems.Page}}active{{end}}"
-                                href="?page={{$i}}&per_page={{$.PaginatedItems.PerPage}}">{{$i}}</a>
+                                href="?page={{$i}}&per_page={{$.PaginatedItems.PerPage}}{{if $.Filters.Tag}}&tag={{urlquery $.Filters.Tag}}{{end}}{{if $.Filters.Source}}&source={{urlquery $.Filters.Source}}{{end}}">{{$i}}</a>
                             {{end}}
 
                             {{if lt .PaginatedItems.Page .PaginatedItems.TotalPages}}
-                            <a href="?page={{add .PaginatedItems.Page 1}}&per_page={{.PaginatedItems.PerPage}}">></a>
-                            <a href="?page={{.PaginatedItems.TotalPages}}&per_page={{.PaginatedItems.PerPage}}">>></a>
+                            <a href="?page={{add .PaginatedItems.Page 1}}&per_page={{.PaginatedItems.PerPage}}{{if .Filters.Tag}}&tag={{urlquery .Filters.Tag}}{{end}}{{if .Filters.Source}}&source={{urlquery .Filters.Source}}{{end}}">></a>
+                            <a href="?page={{.PaginatedItems.TotalPages}}&per_page={{.PaginatedItems.PerPage}}{{if .Filters.Tag}}&tag={{urlquery .Filters.Tag}}{{end}}{{if .Filters.Source}}&source={{urlquery .Filters.Source}}{{end}}">>></a>
                             {{end}}
         </div>
+        {{else}}
+        <p class="empty-state">No posts found. You may want to <a href="/">reset filters</a>.</p>
+        {{end}}
     </div>
 </div>
 {{- else }}

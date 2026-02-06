@@ -18,6 +18,7 @@ type UserFeed struct {
 	UserID  int    `json:"user_id"`
 	FeedURL string `json:"feed_url"`
 	Title   string `json:"title"`
+	Tags    string `json:"tags"`
 }
 
 type UserWithFeeds struct {
