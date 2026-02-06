@@ -16,7 +16,25 @@ func migrationAddNextUpdateTS() {
 	}
 }
 
+// migrationBackfillUserFeedsCategory - ensure category column exists and has no NULL values.
+func migrationBackfillUserFeedsCategory() {
+	_, err := DB.Exec(`ALTER TABLE user_feeds ADD COLUMN category TEXT`)
+	if err != nil && !strings.Contains(err.Error(), "duplicate column") {
+		slog.Error("failed to add category to user_feeds", "error", err)
+
+		os.Exit(1)
+	}
+
+	_, err = DB.Exec(`UPDATE user_feeds SET category = '' WHERE category IS NULL`)
+	if err != nil {
+		slog.Error("failed to backfill NULL category values in user_feeds", "error", err)
+
+		os.Exit(1)
+	}
+}
+
 // RunAllMigrations - running all possible migrations.
 func RunAllMigrations() {
 	migrationAddNextUpdateTS()
+	migrationBackfillUserFeedsCategory()
 }
