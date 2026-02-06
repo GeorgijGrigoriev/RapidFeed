@@ -26,7 +26,7 @@ build:
     done
 
 docker-latest:
-	docker build --platform=linux/amd64 -t ghcr.io/georgijgrigoriev/rapidfeed:latest --build-arg VERSION=$(VERSION) --build-arg COMMIT=$(COMMIT) -f build/Dockerfile .
+	docker build --platform=linux/amd64 -t ghcr.io/georgijgrigoriev/rapidfeed:latest --build-arg VERSION=latest --build-arg COMMIT=$(COMMIT) -f build/Dockerfile .
 
 docker-build-version: docker-amd64 docker-arm64
 

@@ -16,7 +16,7 @@
         <ul>
             {{range .UserFeeds}}
             <li>
-                <form action="/settings" method="post" sextractSourceFromURLtyle="display:inline;">
+                <form action="/settings" method="post" style="display:inline;">
                     <p><b>{{ .Title }}</b></p>
                     <p>{{ .FeedURL }}</p>
                     <input type="hidden" name="feed_id" value="{{.ID}}">

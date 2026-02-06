@@ -1,0 +1,8 @@
+{
+  "doctype-first": false,
+  "tag-pair": false,
+  "attr-no-duplication": true,
+  "id-unique": true,
+  "src-not-empty": true,
+  "title-require": false
+}

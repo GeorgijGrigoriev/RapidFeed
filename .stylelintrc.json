@@ -1,0 +1,19 @@
+{
+  "extends": "stylelint-config-standard",
+  "rules": {
+    "alpha-value-notation": null,
+    "color-function-alias-notation": null,
+    "color-function-notation": null,
+    "comment-whitespace-inside": null,
+    "declaration-block-no-redundant-longhand-properties": null,
+    "font-family-name-quotes": null,
+    "media-feature-range-notation": null,
+    "no-descending-specificity": null,
+    "no-duplicate-selectors": null,
+    "rule-empty-line-before": null
+  },
+  "ignoreFiles": [
+    "**/*.min.css",
+    "**/*.mini.css"
+  ]
+}
