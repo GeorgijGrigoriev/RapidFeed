@@ -34,6 +34,21 @@ func RemoveUserFeed(userId int, feedId string) error {
 	return nil
 }
 
+func UpdateUserFeed(userId int, feedId, feedTitle, feedTags string) error {
+	_, err := DB.Exec(
+		`UPDATE user_feeds SET title = ?, category = ? WHERE id = ? AND user_id = ?`,
+		feedTitle,
+		feedTags,
+		feedId,
+		userId,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to update feed id %s for user id %d: %w", feedId, userId, err)
+	}
+
+	return nil
+}
+
 func GetTotalUserFeedItemsCount(userFeeds []string) (int, error) {
 	var totalCount int
 
@@ -62,19 +77,24 @@ func GetTotalUserFeedItemsCount(userFeeds []string) (int, error) {
 	return totalCount, nil
 }
 
-func GetUserFeedItems(userFeeds []string, perPage, offset int) ([]models.FeedItem, error) {
+func GetUserFeedItems(userID int, userFeeds []string, perPage, offset int) ([]models.FeedItem, error) {
 	var items []models.FeedItem
 
 	placeholders := strings.Repeat(",?", len(userFeeds))[1:]
 
-	argsWithPagination := make([]any, 0, len(userFeeds)+2) // +2 for perpage and offset
+	argsWithPagination := make([]any, 0, len(userFeeds)+3) // +3 for userID, perpage and offset
+	argsWithPagination = append(argsWithPagination, userID)
 	for _, u := range userFeeds {
 		argsWithPagination = append(argsWithPagination, u)
 	}
 
 	argsWithPagination = append(argsWithPagination, perPage, offset)
-	query := fmt.Sprintf(`SELECT title, link, date, source, description FROM feeds
-		WHERE feed_url IN (%s) ORDER BY date DESC LIMIT ? OFFSET ?`, placeholders)
+	query := fmt.Sprintf(`SELECT feeds.title, feeds.link, feeds.date,
+		COALESCE(NULLIF(user_feeds.title, ''), feeds.source) AS source,
+		feeds.description
+		FROM feeds
+		JOIN user_feeds ON user_feeds.feed_url = feeds.feed_url AND user_feeds.user_id = ?
+		WHERE feeds.feed_url IN (%s) ORDER BY date DESC LIMIT ? OFFSET ?`, placeholders)
 
 	rows, err := DB.Query(query, argsWithPagination...)
 	if err != nil {

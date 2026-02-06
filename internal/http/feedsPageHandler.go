@@ -70,7 +70,7 @@ func feedsPageHandler(c *fiber.Ctx) error {
 
 		totalPages = int(math.Ceil(float64(totalCount) / float64(perPage)))
 
-		items, err = db.GetUserFeedItems(filteredFeedUrls, perPage, offset)
+		items, err = db.GetUserFeedItems(userInfo.ID, filteredFeedUrls, perPage, offset)
 		if err != nil {
 			log.Errorf("failed to get %s feed items: %v", userInfo.Username, err)
 

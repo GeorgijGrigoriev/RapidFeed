@@ -152,20 +152,33 @@
             <ul>
                 {{range .UserFeeds}}
                 <li>
-                    <form
-                        action="/internal/api/user/settings/feed/remove"
-                        method="post"
-                        style="display: inline"
-                    >
-                        <p><b>{{ .Title }}</b></p>
-                        <p>{{ .FeedURL }}</p>
-                        {{if .Tags}}
-                        <p>Tags: {{ .Tags }}</p>
-                        {{end}}
+                    {{if .Title}}
+                    <p><b>{{.Title}}</b></p>
+                    {{end}}
+                    <p>{{ .FeedURL }}</p>
+                    <form action="/internal/api/user/settings/feed/update" method="post" class="pure-form">
+                        <label for="edit_feed_title_{{.ID}}">Title:</label>
+                        <input
+                            type="text"
+                            id="edit_feed_title_{{.ID}}"
+                            name="feed_title"
+                            value="{{.Title}}"
+                            placeholder="Optional"
+                        />
+                        <label for="edit_feed_tags_{{.ID}}">Tags:</label>
+                        <input
+                            type="text"
+                            id="edit_feed_tags_{{.ID}}"
+                            name="feed_tags"
+                            value="{{.Tags}}"
+                            placeholder="e.g. tech, security"
+                        />
                         <input type="hidden" name="feed_id" value="{{.ID}}" />
-                        <button class="pure-button" type="submit">
-                            Delete
-                        </button>
+                        <button class="pure-button" type="submit">Edit</button>
+                    </form>
+                    <form action="/internal/api/user/settings/feed/remove" method="post" class="pure-form">
+                        <input type="hidden" name="feed_id" value="{{.ID}}" />
+                        <button class="pure-button" type="submit">Delete</button>
                     </form>
                 </li>
                 {{end}}

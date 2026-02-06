@@ -210,6 +210,32 @@ func removeFeedHandler(c *fiber.Ctx) error {
 	return c.Redirect("/settings#manage-feeds", http.StatusFound)
 }
 
+func updateFeedHandler(c *fiber.Ctx) error {
+	userInfo, err := getSessionInfo(c)
+	if err != nil {
+		log.Error("failed to get user info from session: ", err)
+
+		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
+	}
+
+	feedId := c.FormValue("feed_id")
+	if feedId == "" {
+		log.Error("missing feed id for update")
+		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
+	}
+
+	feedTitle := strings.TrimSpace(c.FormValue("feed_title"))
+	feedTags := normalizeTags(c.FormValue("feed_tags"))
+
+	if err := db.UpdateUserFeed(userInfo.ID, feedId, feedTitle, feedTags); err != nil {
+		log.Error("failed to update user feed: ", err)
+
+		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
+	}
+
+	return c.Redirect("/settings#manage-feeds", http.StatusFound)
+}
+
 func autorefreshIntervalChangeHadler(c *fiber.Ctx) error {
 	userInfo, err := getSessionInfo(c)
 	if err != nil {

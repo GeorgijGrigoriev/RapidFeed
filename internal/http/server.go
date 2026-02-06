@@ -42,6 +42,7 @@ func New() {
 	internalApiRoutes := app.Group("/internal/api/", checkSessionMiddleware())
 	internalApiRoutes.Post("/user/settings/password/change", changePasswordHandler)
 	internalApiRoutes.Post("/user/settings/feed/add", addFeedHandler)
+	internalApiRoutes.Post("/user/settings/feed/update", updateFeedHandler)
 	internalApiRoutes.Post("/user/settings/feed/remove", removeFeedHandler)
 	internalApiRoutes.Post("/user/settings/autorefresh/set", autorefreshIntervalChangeHadler)
 	internalApiRoutes.Post("/user/settings/apiToken/add", addUserTokenHandler)
