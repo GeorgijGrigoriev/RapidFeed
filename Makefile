@@ -1,5 +1,5 @@
 BINARY_NAME := rapidfeed
-VERSION     := 1.0.7
+VERSION     := 1.0.8
 SRC         := cmd/main.go
 COMMIT := $(shell git rev-parse --short HEAD)
 CGO_ENABLED ?= 0
