@@ -15,7 +15,7 @@ var DB *sql.DB
 var ErrTokenNotFound = errors.New("token not found")
 
 func InitDB(dbPath string) {
-	db, err := sql.Open("sqlite3", dbPath)
+	db, err := sql.Open("sqlite", dbPath)
 	if err != nil {
 		slog.Error("failed to initialize database connection", "error", err)
 
