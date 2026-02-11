@@ -7,9 +7,8 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o rapidfeed cmd/main.go
+RUN CGO_ENABLED=1 go build -o rapidfeed cmd/main.go
 
 EXPOSE 8000
 
 CMD ["./rapidfeed"]
-
