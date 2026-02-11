@@ -1,7 +1,8 @@
 BINARY_NAME := rapidfeed
-VERSION     := 1.0.6
+VERSION     := 1.0.7
 SRC         := cmd/main.go
 COMMIT := $(shell git rev-parse --short HEAD)
+CGO_ENABLED ?= 1
 
 OS_LIST     := linux darwin
 ARCH_LIST   := amd64 arm64
@@ -12,14 +13,14 @@ all: bin build
 
 bin:
 	@echo "Building $(BINARY_NAME)-$(VERSION) for current platform..."
-	@go build -o $(BINARY_NAME)-$(VERSION) -ldflags "-X main.Version=$(VERSION) -X main.Commit=$(COMMIT)" $(SRC)
+	@CGO_ENABLED=$(CGO_ENABLED) go build -o $(BINARY_NAME)-$(VERSION) -ldflags "-X main.Version=$(VERSION) -X main.Commit=$(COMMIT)" $(SRC)
 
 build:
 	@echo "Cross‑building for $(OS_LIST)..."
 	@for os in $(OS_LIST); do \
         for arch in $(ARCH_LIST); do \
             echo "  → $(BINARY_NAME)-$(VERSION)-$$os-$$arch"; \
-            env GOOS=$$os GOARCH=$$arch \
+            env CGO_ENABLED=$(CGO_ENABLED) GOOS=$$os GOARCH=$$arch \
                 go build -o $(BINARY_NAME)-$(VERSION)-$$os-$$arch \
                 -ldflags "-X main.Version=$(VERSION) -X main.Commit=$(COMMIT)" $(SRC); \
         done \
