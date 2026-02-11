@@ -9,7 +9,7 @@ import (
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/utils"
 
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/db"
-	_ "github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite"
 )
 
 var (

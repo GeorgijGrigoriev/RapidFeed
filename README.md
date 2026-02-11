@@ -17,7 +17,6 @@ RapidFeed is an open-source RSS reader server written in Go (Golang). Designed w
 
 - Go 1.24 or later
 - Git installed on your machine
-- C compiler for CGO (for example, `gcc`/`build-essential` on Linux)
 
 ### Installation
 
@@ -31,7 +30,7 @@ RapidFeed is an open-source RSS reader server written in Go (Golang). Designed w
 2. **Build and Run**
 
    ```bash
-   CGO_ENABLED=1 go build -o rapidfeed cmd/main.go
+   CGO_ENABLED=0 go build -o rapidfeed cmd/main.go
    ./rapidfeed
    ```
     OR

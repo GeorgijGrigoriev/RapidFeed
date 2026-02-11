@@ -9,8 +9,7 @@ LABEL org.opencontainers.image.version=${VERSION}
 LABEL org.opencontainers.image.revision=${COMMIT}
 LABEL org.opencontainers.image.ref.name="RapidFeed"
 LABEL org.opencontainers.image.authors="gg <grigorievga@yandex.ru>"
-# For cgo support, for sqlite3
-RUN apk add --no-cache git make build-base
+RUN apk add --no-cache git make
 
 WORKDIR /app
 
@@ -19,7 +18,7 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=1 go build -ldflags "-X main.Version=${VERSION} -X main.Commit=${COMMIT}" -o rapidfeed cmd/main.go
+RUN CGO_ENABLED=0 go build -ldflags "-X main.Version=${VERSION} -X main.Commit=${COMMIT}" -o rapidfeed cmd/main.go
 
 # Runtime stage
 FROM alpine:latest

@@ -2,7 +2,7 @@ BINARY_NAME := rapidfeed
 VERSION     := 1.0.7
 SRC         := cmd/main.go
 COMMIT := $(shell git rev-parse --short HEAD)
-CGO_ENABLED ?= 1
+CGO_ENABLED ?= 0
 
 OS_LIST     := linux darwin
 ARCH_LIST   := amd64 arm64
