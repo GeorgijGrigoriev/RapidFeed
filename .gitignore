@@ -33,3 +33,6 @@ go.work.sum
 
 # db file
 feeds.db
+
+#compiled binaries
+rapidfeed-*
