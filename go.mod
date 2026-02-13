@@ -3,7 +3,7 @@ module github.com/GeorgijGrigoriev/RapidFeed
 go 1.25.0
 
 require (
-	github.com/gofiber/fiber/v2 v2.52.9
+	github.com/gofiber/fiber/v2 v2.52.11
 	github.com/gofiber/template/html/v2 v2.1.3
 	github.com/localrivet/gomcp v1.7.2
 	github.com/mmcdole/gofeed v1.3.0

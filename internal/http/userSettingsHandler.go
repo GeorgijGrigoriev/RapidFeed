@@ -83,6 +83,8 @@ func userSettingsRender(c *fiber.Ctx) error {
 		"RefreshInterval": refreshInterval,
 		"LastUpdate":      luStr,
 		"NextUpdate":      nuStr,
+		"PasswordError":   c.Query("password_error"),
+		"PasswordSuccess": c.Query("password_success"),
 	})
 }
 
@@ -105,8 +107,8 @@ func changePasswordHandler(c *fiber.Ctx) error {
 	err = auth.CheckPassword(hash, currentPassword)
 	if err != nil {
 		log.Error("wrong current password")
-		//TODO: add alert on settings page like in login page, to clearly show where user was wrong
-		return c.Redirect("/settings", http.StatusConflict)
+
+		return c.Redirect("/settings?password_error=wrong_current_password#change-password", http.StatusFound)
 	}
 
 	err = db.ChangeUserPassword(userInfo.ID, newPassword)
@@ -116,7 +118,7 @@ func changePasswordHandler(c *fiber.Ctx) error {
 		return c.Render(errorTemplate, defaultInternalErrorMap(nil))
 	}
 
-	return c.Redirect("/settings#change-password", http.StatusFound)
+	return c.Redirect("/settings?password_success=changed#change-password", http.StatusFound)
 }
 
 func addFeedHandler(c *fiber.Ctx) error {
