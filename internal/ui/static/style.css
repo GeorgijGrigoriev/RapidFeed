@@ -7,6 +7,38 @@ body {
     font-size: 18px;
 }
 
+
+.alert {
+    position: relative;
+    padding: 0.75rem 2.25rem 0.75rem 1rem;
+    margin-bottom: 1rem;
+    border-radius: 4px;
+    border: 1px solid transparent;
+}
+
+.alert-close {
+    position: absolute;
+    top: 6px;
+    right: 10px;
+    border: none;
+    background: transparent;
+    font-size: 1.2rem;
+    line-height: 1;
+    color: inherit;
+    cursor: pointer;
+}
+
+.alert-danger {
+    color: #721c24;
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+}
+
+.alert-success {
+    color: #155724;
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+}
 .container {
     max-width: 800px;
     margin: 2rem auto;

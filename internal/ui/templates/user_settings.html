@@ -14,6 +14,20 @@
     <section class="settings-content">
         <div id="change-password" class="settings-section">
             <h4>Change password</h4>
+            {{ if eq .PasswordError "wrong_current_password" }}
+            <div class="alert alert-danger">
+                <button type="button" class="alert-close" aria-label="Close" onclick="this.parentElement.style.display='none'">&times;</button>
+                <strong>Error</strong>
+                <p>Wrong current password.</p>
+            </div>
+            {{ end }}
+            {{ if eq .PasswordSuccess "changed" }}
+            <div class="alert alert-success">
+                <button type="button" class="alert-close" aria-label="Close" onclick="this.parentElement.style.display='none'">&times;</button>
+                <strong>Success</strong>
+                <p>Password successfully changed.</p>
+            </div>
+            {{ end }}
             <form
                 action="/internal/api/user/settings/password/change"
                 class="pure-form pure-form-aligned"
@@ -23,7 +37,7 @@
                     <fieldset>
                         <label for="current_password">Current password:</label>
                         <input
-                            type="text"
+                            type="password"
                             id="current_password"
                             name="current_password"
                             required
@@ -34,7 +48,7 @@
                     <fieldset>
                         <label for="new_password">New Password:</label>
                         <input
-                            type="text"
+                            type="password"
                             id="new_password"
                             name="new_password"
                             required
