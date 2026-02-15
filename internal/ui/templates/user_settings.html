@@ -111,92 +111,113 @@
         </div>
 
         <div id="manage-feeds" class="settings-section">
-            <h4>Manage feeds</h4>
-            <form action="/refresh" method="get" class="pure-form">
-                <button class="pure-button" type="submit">Force sync</button>
-            </form>
-            <br />
-            <form
-                action="/internal/api/user/settings/feed/add"
-                class="pure-form pure-form-aligned"
-                method="post"
-            >
-                <div class="pure-control-group">
-                    <fieldset>
-                        <label for="feed_url">RSS Feed URL:</label>
+            <div class="manage-feeds-header">
+                <div>
+                    <h4>Manage feeds</h4>
+                    <p class="manage-feeds-subtitle">
+                        Add new sources, tune metadata, and keep your feed list clean.
+                    </p>
+                </div>
+                <form action="/refresh" method="get" class="pure-form manage-feeds-sync-form">
+                    <button class="pure-button manage-feeds-sync-button" type="submit">Force sync</button>
+                </form>
+            </div>
+
+            <form action="/internal/api/user/settings/feed/add" class="pure-form feed-add-form" method="post">
+                <div class="feed-add-grid">
+                    <div class="feed-add-field">
+                        <label for="feed_url">RSS feed URL</label>
                         <input
                             type="text"
                             id="feed_url"
                             name="feed_url"
+                            placeholder="https://example.com/rss"
                             required
                         />
-                    </fieldset>
-                </div>
-                <div class="pure-control-group">
-                    <fieldset>
-                        <label for="feed_title">Feed title:</label>
+                    </div>
+                    <div class="feed-add-field">
+                        <label for="feed_title">Display title</label>
                         <input
                             type="text"
                             id="feed_title"
                             name="feed_title"
                             placeholder="Optional"
                         />
-                    </fieldset>
-                </div>
-                <div class="pure-control-group">
-                    <fieldset>
-                        <label for="feed_tags">Tags:</label>
+                    </div>
+                    <div class="feed-add-field">
+                        <label for="feed_tags">Tags</label>
                         <input
                             type="text"
                             id="feed_tags"
                             name="feed_tags"
-                            placeholder="e.g. tech, security"
+                            placeholder="tech, security"
                         />
-                    </fieldset>
+                    </div>
                 </div>
-                <div class="pure-control-group">
-                    <fieldset>
-                        <button class="pure-button" type="submit">
-                            Add RSS Feed
-                        </button>
-                    </fieldset>
+                <div class="feed-add-actions">
+                    <button class="pure-button feed-add-button" type="submit">Add feed</button>
                 </div>
             </form>
 
-            <ul>
+            <div class="manage-feeds-list-header">
+                <h5>Added feeds</h5>
+                <span class="manage-feeds-count">{{len .UserFeeds}}</span>
+            </div>
+            {{if .UserFeeds}}
+            <ul class="feed-management-list">
                 {{range .UserFeeds}}
-                <li>
-                    {{if .Title}}
-                    <p><b>{{.Title}}</b></p>
-                    {{end}}
-                    <p>{{ .FeedURL }}</p>
-                    <form action="/internal/api/user/settings/feed/update" method="post" class="pure-form">
-                        <label for="edit_feed_title_{{.ID}}">Title:</label>
-                        <input
-                            type="text"
-                            id="edit_feed_title_{{.ID}}"
-                            name="feed_title"
-                            value="{{.Title}}"
-                            placeholder="Optional"
-                        />
-                        <label for="edit_feed_tags_{{.ID}}">Tags:</label>
-                        <input
-                            type="text"
-                            id="edit_feed_tags_{{.ID}}"
-                            name="feed_tags"
-                            value="{{.Tags}}"
-                            placeholder="e.g. tech, security"
-                        />
-                        <input type="hidden" name="feed_id" value="{{.ID}}" />
-                        <button class="pure-button" type="submit">Edit</button>
-                    </form>
-                    <form action="/internal/api/user/settings/feed/remove" method="post" class="pure-form">
-                        <input type="hidden" name="feed_id" value="{{.ID}}" />
-                        <button class="pure-button" type="submit">Delete</button>
-                    </form>
+                <li class="feed-management-item">
+                    <div class="feed-card-top">
+                        <div class="feed-card-main">
+                            <p class="feed-card-title">{{if .Title}}{{.Title}}{{else}}Untitled feed{{end}}</p>
+                            <a href="{{.FeedURL}}" class="feed-card-url" target="_blank" rel="noopener noreferrer">{{ .FeedURL }}</a>
+                        </div>
+                    </div>
+                    <div class="feed-item-actions">
+                        <details class="feed-edit-details">
+                            <summary class="feed-edit-toggle">Edit metadata</summary>
+                            <form action="/internal/api/user/settings/feed/update" method="post" class="pure-form feed-edit-form">
+                                <input type="hidden" name="feed_id" value="{{.ID}}" />
+                                <div class="feed-edit-grid">
+                                    <div class="feed-edit-field">
+                                        <label for="edit_feed_title_{{.ID}}">Display title</label>
+                                        <input
+                                            type="text"
+                                            id="edit_feed_title_{{.ID}}"
+                                            name="feed_title"
+                                            value="{{.Title}}"
+                                            placeholder="Optional"
+                                        />
+                                    </div>
+                                    <div class="feed-edit-field">
+                                        <label for="edit_feed_tags_{{.ID}}">Tags</label>
+                                        <input
+                                            type="text"
+                                            id="edit_feed_tags_{{.ID}}"
+                                            name="feed_tags"
+                                            value="{{.Tags}}"
+                                            placeholder="tech, security"
+                                        />
+                                    </div>
+                                </div>
+                                <div class="feed-edit-actions">
+                                    <button class="pure-button feed-save-button" type="submit">Save</button>
+                                </div>
+                            </form>
+                        </details>
+                        <form action="/internal/api/user/settings/feed/remove" method="post" class="pure-form feed-delete-form">
+                            <input type="hidden" name="feed_id" value="{{.ID}}" />
+                            <button class="pure-button feed-delete-button" type="submit">Delete</button>
+                        </form>
+                    </div>
                 </li>
                 {{end}}
             </ul>
+            {{else}}
+            <div class="manage-feeds-empty">
+                <p>No feeds added yet. Add your first source above.</p>
+            </div>
+            {{end}}
         </div>
 
         <div id="api-token" class="settings-section">

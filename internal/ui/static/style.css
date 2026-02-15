@@ -303,6 +303,239 @@ pre {
 
 .settings-section:target { display: block; }
 
+.manage-feeds-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 0.9rem;
+}
+
+.manage-feeds-header h4 {
+    margin: 0;
+}
+
+.manage-feeds-subtitle {
+    margin: 0.3rem 0 0;
+    font-size: 0.88rem;
+    color: #6b7280;
+}
+
+.manage-feeds-sync-form {
+    margin: 0;
+}
+
+.manage-feeds-sync-button {
+    background: #f0f4f8;
+    color: #324b64;
+    border: 1px solid #cad8e5;
+}
+
+.feed-add-form {
+    background: #fff;
+    border: 1px solid #d7e0ea;
+    border-radius: 10px;
+    padding: 0.9rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 12px rgba(19, 42, 64, 0.05);
+}
+
+.feed-add-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.feed-add-field,
+.feed-edit-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.feed-add-field label,
+.feed-edit-field label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #3c4a5a;
+}
+
+.feed-add-field input,
+.feed-edit-field input {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #cad5e0;
+    border-radius: 6px;
+    padding: 0.5rem 0.6rem;
+    font-size: 0.9rem;
+}
+
+.feed-add-actions,
+.feed-edit-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 0.8rem;
+}
+
+.feed-add-button,
+.feed-save-button {
+    background: #2a6f9c;
+    color: #fff;
+}
+
+.feed-add-button:hover,
+.feed-save-button:hover {
+    background: #215a7e;
+}
+
+.manage-feeds-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.55rem;
+}
+
+.manage-feeds-list-header h5 {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #344255;
+}
+
+.manage-feeds-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 999px;
+    background: #e5edf5;
+    color: #2a5679;
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 0 0.45rem;
+}
+
+.feed-management-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+}
+
+.feed-management-item {
+    background: #fff;
+    border: 1px solid #d7e0ea;
+    border-radius: 10px;
+    padding: 0.85rem 0.9rem;
+    box-shadow: 0 3px 10px rgba(19, 42, 64, 0.04);
+}
+
+.feed-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.feed-card-main {
+    min-width: 0;
+}
+
+.feed-card-title {
+    margin: 0;
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: #1f3346;
+}
+
+.feed-card-url {
+    display: inline-block;
+    margin-top: 0.25rem;
+    color: #2c6a98;
+    font-size: 0.82rem;
+    text-decoration: none;
+    word-break: break-all;
+}
+
+.feed-card-url:hover {
+    text-decoration: underline;
+}
+
+.feed-item-actions {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+    padding-top: 0.65rem;
+    border-top: 1px dashed #d8e1eb;
+}
+
+.feed-edit-details {
+    flex: 1;
+}
+
+.feed-edit-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    cursor: pointer;
+    color: #2c6a98;
+    font-size: 0.83rem;
+    font-weight: 600;
+    list-style: none;
+}
+
+.feed-edit-toggle::-webkit-details-marker {
+    display: none;
+}
+
+.feed-edit-toggle::before {
+    content: "+";
+    font-size: 0.95rem;
+    line-height: 1;
+}
+
+.feed-edit-details[open] .feed-edit-toggle::before {
+    content: "-";
+}
+
+.feed-delete-form {
+    margin: 0;
+    align-self: flex-start;
+}
+
+.feed-delete-button {
+    background: #fff2f0;
+    color: #b42318;
+    border: 1px solid #f6c7c3;
+}
+
+.feed-delete-button:hover {
+    background: #fde8e6;
+}
+
+.feed-edit-form {
+    margin-top: 0.65rem;
+}
+
+.feed-edit-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.7rem;
+}
+
+.manage-feeds-empty {
+    border: 1px dashed #cdd6e0;
+    border-radius: 10px;
+    padding: 1rem;
+    text-align: center;
+    color: #5f6b79;
+    background: #f9fbfd;
+}
+
 body:has(#change-password:target) .settings-menu a[href="#change-password"],
 body:has(#autorefresh:target)      .settings-menu a[href="#autorefresh"],
 body:has(#manage-feeds:target)     .settings-menu a[href="#manage-feeds"] {
@@ -322,5 +555,50 @@ body:has(#manage-feeds:target)     .settings-menu a[href="#manage-feeds"] {
     .settings-menu a {
         display: inline-block;
         margin-right: 0.5rem;
+    }
+
+    .manage-feeds-header {
+        flex-direction: column;
+    }
+
+    .feed-add-grid,
+    .feed-edit-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .feed-card-top {
+        flex-direction: column;
+    }
+
+    .feed-item-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .feed-edit-toggle {
+        width: 100%;
+        justify-content: center;
+        border: 1px solid #cad5e0;
+        border-radius: 6px;
+        padding: 0.45rem;
+        box-sizing: border-box;
+    }
+
+    .feed-delete-form {
+        width: 100%;
+    }
+
+    .feed-delete-button {
+        width: 100%;
+    }
+
+    .feed-add-actions,
+    .feed-edit-actions {
+        justify-content: stretch;
+    }
+
+    .feed-add-button,
+    .feed-save-button {
+        width: 100%;
     }
 }
