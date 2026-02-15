@@ -1,89 +1,113 @@
 {{- template "base_header" . }}
 {{- template "navbar" . }}
-<div class="container pure-g">
-    <div class="pure-u-1-1">
-        <h4>Add new user to RapidFeed:</h4>
-        <form action="/internal/api/admin/user/add" method="post" class="pure-form pure-form-aligned">
-            <div class="pure-control-group">
-                <fieldset>
-                    <label for="username">Username:</label>
-                    <input type="text" id="username" name="username" required>
-                </fieldset>
-            </div>
-            <div class="pure-control-group">
-                <fieldset>
-                    <label for="password">Password:</label>
-                    <input type="password" id="password" name="password" required>
-                </fieldset>
-            </div>
-            <div class="pure-control-group">
-                <fieldset>
-                    <label for="role">Role:</label>
-                    <select id="role" name="role">
-                        <option value="user">User</option>
-                        <option value="admin">Admin</option>
-                    </select>
-                </fieldset>
-            </div>
-            <div class="pure-control-group">
-                <fieldset>
-                    <button class="pure-button" type="submit">Add User</button>
-                </fieldset>
-            </div>
-        </form>
+<div class="settings-page admin-settings-page">
+    <nav class="settings-menu">
+        <ul>
+            <li><a href="/">Back to news</a></li>
+            <hr />
+            <li><a href="#add-user">Add user</a></li>
+            <li><a href="#manage-users">Manage users</a></li>
+        </ul>
+    </nav>
 
-        <br />
-        <hr />
-        <br />
+    <section class="settings-content admin-settings-content">
+        <div id="add-user" class="settings-section settings-panel">
+            <div class="settings-panel-header">
+                <h4>Add new user</h4>
+                <p class="settings-panel-subtitle">Create a new account and assign role.</p>
+            </div>
+            <form action="/internal/api/admin/user/add" method="post" class="pure-form settings-form">
+                <div class="settings-form-grid settings-form-grid--double admin-add-user-grid">
+                    <div class="settings-field">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" name="username" required>
+                    </div>
+                    <div class="settings-field">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                    <div class="settings-field admin-role-field">
+                        <label for="role">Role</label>
+                        <select id="role" name="role">
+                            <option value="user">User</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="settings-actions">
+                    <button class="pure-button settings-button settings-button-primary" type="submit">Add user</button>
+                </div>
+            </form>
+        </div>
 
-        <h4>Manage existing users and feeds:</h4>
-        <table class="pure-table">
-            <thead>
-                <tr>
-                    <th>Username</th>
-                    <th>Role</th>
-                    <th>RSS Feeds</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
+        <div id="manage-users" class="settings-section settings-panel">
+            <div class="settings-panel-header settings-panel-header--row">
+                <div>
+                    <h4>Manage users and feeds</h4>
+                    <p class="settings-panel-subtitle">Block or unblock users and remove subscriptions.</p>
+                </div>
+                <span class="manage-feeds-count">{{len .UsersWithFeeds}}</span>
+            </div>
+
+            {{if .UsersWithFeeds}}
+            <ul class="admin-user-list">
                 {{range .UsersWithFeeds}}
-                <tr>
-                    <td>{{.User.Username}}</td>
-                    <td>{{.User.Role}}</td>
-                    <td>
-                        <ul>
+                <li class="admin-user-item">
+                    <div class="admin-user-top">
+                        <div class="admin-user-top-main">
+                            <p class="admin-user-name">{{.User.Username}}</p>
+                            <span class="admin-role-badge {{if eq .User.Role "admin"}}admin-role-admin{{else if eq .User.Role "blocked"}}admin-role-blocked{{else}}admin-role-user{{end}}">{{.User.Role}}</span>
+                        </div>
+                        <div class="admin-user-actions">
+                            {{if ne .User.Role "blocked"}}
+                            <form action="/internal/api/admin/user/block" method="post" class="pure-form">
+                                <input type="hidden" name="block_user_id" value="{{.User.ID}}">
+                                <button class="pure-button settings-button settings-button-danger" type="submit">Block user</button>
+                            </form>
+                            {{ else }}
+                            <form action="/internal/api/admin/user/unblock" method="post" class="pure-form">
+                                <input type="hidden" name="unblock_user_id" value="{{.User.ID}}">
+                                <button class="pure-button settings-button settings-button-secondary" type="submit">Unblock user</button>
+                            </form>
+                            {{end}}
+                        </div>
+                    </div>
+
+                    <div class="admin-user-feeds">
+                        <p class="admin-user-feeds-title">Feeds</p>
+                        {{if .UserFeeds}}
+                        <ul class="admin-feed-list">
                             {{range .UserFeeds}}
-                            <li>
-                                {{ .Title }} - {{.FeedURL}}
-                                {{if .Tags}}
-                                (Tags: {{ .Tags }})
-                                {{end}}
-                                <form action="/internal/api/admin/user/feed/remove" method="post" style="display:inline;">
+                            <li class="admin-feed-item">
+                                <div class="admin-feed-main">
+                                    <p class="admin-feed-title">{{if .Title}}{{.Title}}{{else}}Untitled feed{{end}}</p>
+                                    <a href="{{.FeedURL}}" class="admin-feed-url" target="_blank" rel="noopener noreferrer">{{.FeedURL}}</a>
+                                    {{if .Tags}}
+                                    <p class="admin-feed-tags">Tags: {{ .Tags }}</p>
+                                    {{end}}
+                                </div>
+                                <form action="/internal/api/admin/user/feed/remove" method="post" class="pure-form admin-feed-delete-form">
                                     <input type="hidden" name="delete_feed_id" value="{{.ID}}">
-                                    <button class="button-warning pure-button" type="submit">Delete Feed</button>
+                                    <button class="pure-button settings-button settings-button-danger" type="submit">Delete feed</button>
                                 </form>
                             </li>
                             {{end}}
                         </ul>
-                    </td>
-                    <td>
-                        {{if ne .User.Role "blocked"}}
-                        <form action="/internal/api/admin/user/block" method="post" style="display:inline;">
-                            <input type="hidden" name="block_user_id" value="{{.User.ID}}">
-                            <button class="button-warning pure-button" type="submit">Block User</button>
-                        </form>
-                        {{ else }}
-                        <form action="/internal/api/admin/user/unblock" method="post" style="display:inline;">
-                            <input type="hidden" name="unblock_user_id" value="{{.User.ID}}">
-                            <button class="button-warning pure-button" type="submit">Unblock User</button>
-                        </form>
+                        {{else}}
+                        <div class="settings-empty-note">
+                            <p>No feeds for this user.</p>
+                        </div>
                         {{end}}
-                    </td>
-                </tr>
+                    </div>
+                </li>
                 {{end}}
-            </tbody>
-        </table>
-    </div>
+            </ul>
+            {{else}}
+            <div class="settings-empty-note">
+                <p>No users found.</p>
+            </div>
+            {{end}}
+        </div>
+    </section>
 </div>
 {{- template "base_footer" . }}
