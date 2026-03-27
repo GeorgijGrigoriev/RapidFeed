@@ -2,6 +2,7 @@ package main
 
 import (
 	"log/slog"
+	"os"
 
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/feeder"
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/http"
@@ -33,17 +34,19 @@ func init() {
 
 	slog.Info("Connection opened")
 
-	db.InitSchema() // maybe not necessary call it every time?
+	slog.Info("Running database migrations")
+
+	if err := db.RunMigrations(db.MigrateUp, 0); err != nil {
+		slog.Error("failed to run database migrations", "error", err)
+
+		os.Exit(1)
+	}
+
+	slog.Info("Database migrations done")
 
 	db.CreateDefaultAdmin()
 
 	slog.Info("Database initialized")
-
-	slog.Info("Running database migrations")
-
-	db.RunAllMigrations()
-
-	slog.Info("Database migrations done")
 }
 
 func main() {

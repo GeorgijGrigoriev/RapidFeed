@@ -1,19 +1,33 @@
 BINARY_NAME := rapidfeed
+MIGRATOR_BINARY_NAME := rapidfeed-migrator
 VERSION     := 1.0.8
-SRC         := cmd/main.go
+SRC         := ./cmd/rapidfeed
+MIGRATOR_SRC := ./cmd/migrator
 COMMIT := $(shell git rev-parse --short HEAD)
 CGO_ENABLED ?= 0
 
 OS_LIST     := linux darwin
 ARCH_LIST   := amd64 arm64
 
-.PHONY: all build bin clean
+.PHONY: all build bin migrator migrate-up migrate-down clean
 
 all: bin build
 
 bin:
 	@echo "Building $(BINARY_NAME)-$(VERSION) for current platform..."
 	@CGO_ENABLED=$(CGO_ENABLED) go build -o $(BINARY_NAME)-$(VERSION) -ldflags "-X main.Version=$(VERSION) -X main.Commit=$(COMMIT)" $(SRC)
+
+migrator:
+	@echo "Building $(MIGRATOR_BINARY_NAME)-$(VERSION) for current platform..."
+	@CGO_ENABLED=$(CGO_ENABLED) go build -o $(MIGRATOR_BINARY_NAME)-$(VERSION) $(MIGRATOR_SRC)
+
+migrate-up:
+	@echo "Running up migrations"
+	@go run $(MIGRATOR_SRC) -direction up
+
+migrate-down:
+	@echo "Running down migrations (1 step)"
+	@go run $(MIGRATOR_SRC) -direction down -steps 1
 
 build:
 	@echo "Cross‑building for $(OS_LIST)..."

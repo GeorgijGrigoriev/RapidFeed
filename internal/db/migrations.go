@@ -1,40 +1,59 @@
 package db
 
 import (
-	"log/slog"
-	"os"
-	"strings"
+	"errors"
+	"fmt"
+
+	"github.com/GeorgijGrigoriev/RapidFeed/migrations"
+
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/sqlite"
+	"github.com/golang-migrate/migrate/v4/source/iofs"
 )
 
-// migrationAddNextUpdateTS - run migration on user_refresh_settings table for add additional column.
-func migrationAddNextUpdateTS() {
-	_, err := DB.Exec(`ALTER TABLE user_refresh_settings ADD COLUMN next_update_ts TEXT`)
-	if err != nil && !strings.Contains(err.Error(), "duplicate column") {
-		slog.Error("failed to add next_update_ts to user_refresh_settings", "error", err)
+type MigrationDirection string
 
-		os.Exit(1)
-	}
-}
+const (
+	MigrateUp   MigrationDirection = "up"
+	MigrateDown MigrationDirection = "down"
+)
 
-// migrationBackfillUserFeedsCategory - ensure category column exists and has no NULL values.
-func migrationBackfillUserFeedsCategory() {
-	_, err := DB.Exec(`ALTER TABLE user_feeds ADD COLUMN category TEXT`)
-	if err != nil && !strings.Contains(err.Error(), "duplicate column") {
-		slog.Error("failed to add category to user_feeds", "error", err)
-
-		os.Exit(1)
-	}
-
-	_, err = DB.Exec(`UPDATE user_feeds SET category = '' WHERE category IS NULL`)
+func RunMigrations(direction MigrationDirection, steps int) error {
+	sourceDriver, err := iofs.New(migrations.FS, ".")
 	if err != nil {
-		slog.Error("failed to backfill NULL category values in user_feeds", "error", err)
-
-		os.Exit(1)
+		return fmt.Errorf("failed to initialize migrations source: %w", err)
 	}
-}
 
-// RunAllMigrations - running all possible migrations.
-func RunAllMigrations() {
-	migrationAddNextUpdateTS()
-	migrationBackfillUserFeedsCategory()
+	dbDriver, err := sqlite.WithInstance(DB, &sqlite.Config{})
+	if err != nil {
+		return fmt.Errorf("failed to initialize sqlite migrations driver: %w", err)
+	}
+
+	m, err := migrate.NewWithInstance("iofs", sourceDriver, "sqlite", dbDriver)
+	if err != nil {
+		return fmt.Errorf("failed to initialize migrator: %w", err)
+	}
+
+	switch direction {
+	case MigrateUp:
+		err = m.Up()
+	case MigrateDown:
+		if steps <= 0 {
+			return errors.New("steps must be greater than 0 for down migrations")
+		}
+
+		err = m.Steps(-steps)
+	default:
+		return fmt.Errorf("unsupported migration direction: %s", direction)
+	}
+
+	if errors.Is(err, migrate.ErrNoChange) {
+		return nil
+	}
+
+	if err != nil {
+		return fmt.Errorf("failed to run migrations: %w", err)
+	}
+
+	return nil
 }
