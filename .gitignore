@@ -36,3 +36,5 @@ feeds.db
 
 #compiled binaries
 rapidfeed-*
+
+.agents
