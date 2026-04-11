@@ -12,15 +12,15 @@ var (
 )
 
 func NormalizeFeedText(input string) string {
-	normalized := html.UnescapeString(input)
-	normalized = strings.ReplaceAll(normalized, "\u00a0", " ")
+	normalized := strings.ReplaceAll(input, "\u00a0", " ")
 	normalized = whitespaceRegexp.ReplaceAllString(normalized, " ")
 
 	return strings.TrimSpace(normalized)
 }
 
 func StripHTMLAndNormalizeFeedText(input string) string {
-	withoutHTML := htmlTagRegexp.ReplaceAllString(input, " ")
+	unescaped := html.UnescapeString(input)
+	withoutHTML := htmlTagRegexp.ReplaceAllString(unescaped, " ")
 
 	return NormalizeFeedText(withoutHTML)
 }
