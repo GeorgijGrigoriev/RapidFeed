@@ -1,8 +1,10 @@
-BINARY_NAME := rapidfeed
-VERSION     := 1.0.9
-SRC         := cmd/main.go
-COMMIT := $(shell git rev-parse --short HEAD)
-CGO_ENABLED ?= 0
+BINARY_NAME          := rapidfeed
+MIGRATOR_BINARY_NAME := migrator
+VERSION              := 1.0.9
+SRC                  := cmd/rapidfeed/main.go
+MIGRATOR_SRC         := cmd/migrator/main.go
+COMMIT               := $(shell git rev-parse --short HEAD)
+CGO_ENABLED          ?= 0
 
 OS_LIST     := linux darwin
 ARCH_LIST   := amd64 arm64

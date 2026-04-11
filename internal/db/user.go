@@ -67,9 +67,17 @@ func ChangeUserRole(userId, role string) error {
 		return fmt.Errorf("invalid user id for role change: %w", err)
 	}
 
-	_, err = DB.Exec(`UPDATE users SET role = ? WHERE id = ? AND role != 'blocked'`, role, id)
+	res, err := DB.Exec(`UPDATE users SET role = ? WHERE id = ? AND role != 'blocked'`, role, id)
 	if err != nil {
 		return fmt.Errorf("failed to change user role: %w", err)
+	}
+
+	n, err := res.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to check rows affected: %w", err)
+	}
+	if n == 0 {
+		return fmt.Errorf("user %d not found or is blocked", id)
 	}
 
 	return nil
