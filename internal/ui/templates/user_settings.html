@@ -267,4 +267,26 @@
     </section>
 </div>
 
+<script>
+(function () {
+    function lockButton(btn, label) {
+        btn.disabled = true;
+        btn.textContent = label;
+    }
+
+    var syncForm = document.querySelector(".manage-feeds-sync-form");
+    if (syncForm) {
+        syncForm.addEventListener("submit", function () {
+            lockButton(syncForm.querySelector("button[type=submit]"), "Syncing\u2026");
+        });
+    }
+
+    var addForm = document.querySelector(".feed-add-form");
+    if (addForm) {
+        addForm.addEventListener("submit", function () {
+            lockButton(addForm.querySelector("button[type=submit]"), "Adding\u2026");
+        });
+    }
+}());
+</script>
 {{- template "base_footer" . }}

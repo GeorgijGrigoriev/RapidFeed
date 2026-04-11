@@ -53,6 +53,25 @@ func addUserHandler(c *fiber.Ctx) error {
 	return c.Redirect("/admin/users", http.StatusFound)
 }
 
+func changeUserRoleHandler(c *fiber.Ctx) error {
+	userId := c.FormValue("user_id")
+	role := c.FormValue("role")
+	if userId == "" || role == "" {
+		log.Warn("empty user id or role for role change, nothing to do")
+
+		return c.Redirect("/admin/users", http.StatusFound)
+	}
+
+	err := db.ChangeUserRole(userId, role)
+	if err != nil {
+		log.Errorf("failed to change role for user %s: %v", userId, err)
+
+		return c.Render(errorTemplate, defaultInternalErrorMap(err))
+	}
+
+	return c.Redirect("/admin/users", http.StatusFound)
+}
+
 func blockUserHandler(c *fiber.Ctx) error {
 	blockUserId := c.FormValue("block_user_id")
 	if blockUserId == "" {

@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/models"
-	"github.com/GeorgijGrigoriev/RapidFeed/internal/utils"
 )
 
 func AddUserFeed(userId int, feedTitle, feedUrl, feedTags string) error {
@@ -123,9 +122,6 @@ func GetUserFeedItems(userID int, userFeeds []string, perPage, offset int) ([]mo
 		}
 
 		item.Date = timeToHumanReadable(item.Date)
-		item.Title = utils.NormalizeFeedText(item.Title)
-		item.Source = utils.NormalizeFeedText(item.Source)
-		item.Description = utils.NormalizeFeedText(item.Description)
 
 		items = append(items, item)
 	}

@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/db"
-	"github.com/GeorgijGrigoriev/RapidFeed/internal/utils"
 	gomcp "github.com/localrivet/gomcp/server"
 )
 
@@ -202,9 +201,6 @@ func fetchUserFeedItemsByPeriod(userID int, period string) (items []feedItem, er
 		if err := rows.Scan(&item.Title, &item.Link, &item.Date, &item.Source, &item.Description); err != nil {
 			return nil, err
 		}
-		item.Title = utils.NormalizeFeedText(item.Title)
-		item.Source = utils.NormalizeFeedText(item.Source)
-		item.Description = utils.NormalizeFeedText(item.Description)
 		items = append(items, item)
 	}
 	if err := rows.Err(); err != nil {
@@ -251,9 +247,6 @@ func fetchUserFeedItemsByLimit(userID int, limit int) (items []feedItem, err err
 		if err := rows.Scan(&item.Title, &item.Link, &item.Date, &item.Source, &item.Description); err != nil {
 			return nil, err
 		}
-		item.Title = utils.NormalizeFeedText(item.Title)
-		item.Source = utils.NormalizeFeedText(item.Source)
-		item.Description = utils.NormalizeFeedText(item.Description)
 		items = append(items, item)
 	}
 	if err := rows.Err(); err != nil {

@@ -59,15 +59,28 @@
                             <span class="admin-role-badge {{if eq .User.Role "admin"}}admin-role-admin{{else if eq .User.Role "blocked"}}admin-role-blocked{{else}}admin-role-user{{end}}">{{.User.Role}}</span>
                         </div>
                         <div class="admin-user-actions">
-                            {{if ne .User.Role "blocked"}}
-                            <form action="/internal/api/admin/user/block" method="post" class="pure-form">
-                                <input type="hidden" name="block_user_id" value="{{.User.ID}}">
-                                <button class="pure-button settings-button settings-button-danger" type="submit">Block user</button>
-                            </form>
-                            {{ else }}
+                            {{if eq .User.Role "blocked"}}
                             <form action="/internal/api/admin/user/unblock" method="post" class="pure-form">
                                 <input type="hidden" name="unblock_user_id" value="{{.User.ID}}">
                                 <button class="pure-button settings-button settings-button-secondary" type="submit">Unblock user</button>
+                            </form>
+                            {{else}}
+                            {{if eq .User.Role "admin"}}
+                            <form action="/internal/api/admin/user/role/change" method="post" class="pure-form">
+                                <input type="hidden" name="user_id" value="{{.User.ID}}">
+                                <input type="hidden" name="role" value="user">
+                                <button class="pure-button settings-button settings-button-secondary" type="submit">Make user</button>
+                            </form>
+                            {{else}}
+                            <form action="/internal/api/admin/user/role/change" method="post" class="pure-form">
+                                <input type="hidden" name="user_id" value="{{.User.ID}}">
+                                <input type="hidden" name="role" value="admin">
+                                <button class="pure-button settings-button settings-button-secondary" type="submit">Make admin</button>
+                            </form>
+                            {{end}}
+                            <form action="/internal/api/admin/user/block" method="post" class="pure-form">
+                                <input type="hidden" name="block_user_id" value="{{.User.ID}}">
+                                <button class="pure-button settings-button settings-button-danger" type="submit">Block user</button>
                             </form>
                             {{end}}
                         </div>
