@@ -1,7 +1,9 @@
 package main
 
 import (
+	"flag"
 	"log/slog"
+	"os"
 
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/feeder"
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/http"
@@ -47,6 +49,17 @@ func init() {
 }
 
 func main() {
+	migrateNormalize := flag.Bool("migrate-normalize-feeds", false, "Normalize feed text in DB: strip HTML, decode entities, collapse whitespace. Runs and exits.")
+	flag.Parse()
+
+	if *migrateNormalize {
+		if err := db.MigrateNormalizeFeedText(); err != nil {
+			slog.Error("migration failed", "error", err)
+			os.Exit(1)
+		}
+		return
+	}
+
 	slog.Info("Starting RapidFeed server")
 	go feeder.StartAutoRefresh()
 	go func() {
