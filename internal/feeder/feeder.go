@@ -3,10 +3,10 @@ package feeder
 import (
 	"log"
 	"log/slog"
-	"regexp"
 	"time"
 
 	"github.com/GeorgijGrigoriev/RapidFeed/internal/db"
+	"github.com/GeorgijGrigoriev/RapidFeed/internal/utils"
 	"github.com/mmcdole/gofeed"
 )
 
@@ -43,8 +43,11 @@ func fetchAndSaveFeed(url, source string) {
 			date := item.PublishedParsed.Format(time.RFC3339)
 
 			insertQuery := `INSERT INTO feeds (title, link, date, source, description, feed_url) VALUES (?, ?, ?, ?, ?, ?)`
+			title := utils.StripHTMLAndNormalizeFeedText(item.Title)
+			description := utils.StripHTMLAndNormalizeFeedText(item.Description)
+			normalizedSource := utils.StripHTMLAndNormalizeFeedText(source)
 
-			_, err := db.DB.Exec(insertQuery, item.Title, item.Link, date, source, cleanHTMLTags(item.Description), url)
+			_, err := db.DB.Exec(insertQuery, title, item.Link, date, normalizedSource, description, url)
 			if err != nil {
 				slog.Error("Error inserting new item in feed:", "error", err)
 			}
@@ -59,11 +62,4 @@ func ExtractSourceFromURL(url string) string {
 	}
 
 	return host
-}
-
-func cleanHTMLTags(input string) string {
-	re := regexp.MustCompile(`<[^>]*>`)
-	result := re.ReplaceAllString(input, "")
-
-	return result
 }

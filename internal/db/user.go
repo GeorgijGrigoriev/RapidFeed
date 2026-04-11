@@ -57,6 +57,24 @@ func AddUser(username, password, role string) error {
 	return nil
 }
 
+func ChangeUserRole(userId, role string) error {
+	if role != "user" && role != "admin" {
+		return fmt.Errorf("invalid role %q: must be user or admin", role)
+	}
+
+	id, err := strconv.Atoi(userId)
+	if err != nil {
+		return fmt.Errorf("invalid user id for role change: %w", err)
+	}
+
+	_, err = DB.Exec(`UPDATE users SET role = ? WHERE id = ? AND role != 'blocked'`, role, id)
+	if err != nil {
+		return fmt.Errorf("failed to change user role: %w", err)
+	}
+
+	return nil
+}
+
 func BlockUser(userId string) error {
 	blockUserId, err := strconv.Atoi(userId)
 	if err != nil {

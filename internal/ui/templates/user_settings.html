@@ -1,5 +1,5 @@
 {{- template "base_header" . }} {{- template "navbar" . }}
-<div class="settings-page">
+<div class="settings-page user-settings-page">
     <nav class="settings-menu">
         <ul>
             <li><a href="/">Back to news</a></li>
@@ -13,250 +13,280 @@
 
     <section class="settings-content">
         <div id="change-password" class="settings-section">
-            <h4>Change password</h4>
-            {{ if eq .PasswordError "wrong_current_password" }}
-            <div class="alert alert-danger">
-                <button type="button" class="alert-close" aria-label="Close" onclick="this.parentElement.style.display='none'">&times;</button>
-                <strong>Error</strong>
-                <p>Wrong current password.</p>
-            </div>
-            {{ end }}
-            {{ if eq .PasswordSuccess "changed" }}
-            <div class="alert alert-success">
-                <button type="button" class="alert-close" aria-label="Close" onclick="this.parentElement.style.display='none'">&times;</button>
-                <strong>Success</strong>
-                <p>Password successfully changed.</p>
-            </div>
-            {{ end }}
-            <form
-                action="/internal/api/user/settings/password/change"
-                class="pure-form pure-form-aligned"
-                method="post"
-            >
-                <div class="pure-control-group">
-                    <fieldset>
-                        <label for="current_password">Current password:</label>
-                        <input
-                            type="password"
-                            id="current_password"
-                            name="current_password"
-                            required
-                        />
-                    </fieldset>
+            <div class="settings-panel">
+                <div class="settings-panel-header">
+                    <h4>Change password</h4>
+                    <p class="settings-panel-subtitle">Update your account password securely.</p>
                 </div>
-                <div class="pure-control-group">
-                    <fieldset>
-                        <label for="new_password">New Password:</label>
-                        <input
-                            type="password"
-                            id="new_password"
-                            name="new_password"
-                            required
-                        />
-                    </fieldset>
+                {{ if eq .PasswordError "wrong_current_password" }}
+                <div class="alert alert-danger">
+                    <strong>Error</strong>
+                    <p>Wrong current password.</p>
                 </div>
-                <div class="pure-control-group">
-                    <fieldset>
-                        <button class="pure-button" type="submit">
+                {{ end }}
+                {{ if eq .PasswordSuccess "changed" }}
+                <div class="alert alert-success">
+                    <strong>Success</strong>
+                    <p>Password successfully changed.</p>
+                </div>
+                {{ end }}
+                <form action="/internal/api/user/settings/password/change" class="pure-form settings-form" method="post">
+                    <div class="settings-form-grid settings-form-grid-single">
+                        <div class="settings-field">
+                            <label for="current_password">Current password</label>
+                            <input
+                                type="password"
+                                id="current_password"
+                                name="current_password"
+                                required
+                            />
+                        </div>
+                        <div class="settings-field">
+                            <label for="new_password">New password</label>
+                            <input
+                                type="password"
+                                id="new_password"
+                                name="new_password"
+                                required
+                            />
+                        </div>
+                    </div>
+                    <div class="settings-actions">
+                        <button class="pure-button settings-button settings-button-primary" type="submit">
                             Change password
                         </button>
-                    </fieldset>
-                </div>
-            </form>
+                    </div>
+                </form>
+            </div>
         </div>
 
         <div id="autorefresh" class="settings-section">
-            <h4>Autorefresh feeds</h4>
-            <span class="hint">
-                You can disable autorefresh – just pass 0 to Refresh Interval
-            </span>
-            <form
-                method="post"
-                action="/internal/api/user/settings/autorefresh/set"
-                class="pure-form pure-form-aligned"
-            >
-                <br />
-                <div class="pure-control-group">
-                    <div class="hint-wrapper">
-                        <span class="hint">Last update: {{ .LastUpdate }}</span>
-                        <span class="hint">Next update: {{ .NextUpdate }}</span>
+            <div class="settings-panel">
+                <div class="settings-panel-header">
+                    <h4>Autorefresh feeds</h4>
+                    <p class="settings-panel-subtitle">
+                        Set how often feeds are refreshed. Use 0 to disable automatic updates.
+                    </p>
+                </div>
+                <div class="settings-meta-grid">
+                    <div class="settings-meta-item">
+                        <span class="settings-meta-label">Last update</span>
+                        <span class="settings-meta-value">{{ .LastUpdate }}</span>
+                    </div>
+                    <div class="settings-meta-item">
+                        <span class="settings-meta-label">Next update</span>
+                        <span class="settings-meta-value">{{ .NextUpdate }}</span>
                     </div>
                 </div>
-                <br />
-                <div class="pure-control-group">
-                    <fieldset>
-                        <label for="refresh_interval" class="form-label">
-                            Refresh Interval (minutes)
-                        </label>
-                        <input
-                            type="number"
-                            class="form-control"
-                            id="refresh_interval"
-                            name="refresh_interval"
-                            min="0"
-                            max="1440"
-                            value="{{.RefreshInterval}}"
-                            required
-                        />
-                    </fieldset>
-                </div>
-                <div class="pure-control-group">
-                    <fieldset>
-                        <button type="submit" class="pure-button">
-                            Update Refresh Interval
+                <form method="post" action="/internal/api/user/settings/autorefresh/set" class="pure-form settings-form">
+                    <div class="settings-form-grid settings-form-grid-single">
+                        <div class="settings-field">
+                            <label for="refresh_interval">
+                                Refresh interval (minutes)
+                            </label>
+                            <input
+                                type="number"
+                                id="refresh_interval"
+                                name="refresh_interval"
+                                min="0"
+                                max="1440"
+                                value="{{.RefreshInterval}}"
+                                required
+                            />
+                        </div>
+                    </div>
+                    <div class="settings-actions">
+                        <button type="submit" class="pure-button settings-button settings-button-primary">
+                            Update interval
                         </button>
-                    </fieldset>
-                </div>
-            </form>
+                    </div>
+                </form>
+            </div>
         </div>
 
         <div id="manage-feeds" class="settings-section">
-            <h4>Manage feeds</h4>
-            <form action="/refresh" method="get" class="pure-form">
-                <button class="pure-button" type="submit">Force sync</button>
-            </form>
-            <br />
-            <form
-                action="/internal/api/user/settings/feed/add"
-                class="pure-form pure-form-aligned"
-                method="post"
-            >
-                <div class="pure-control-group">
-                    <fieldset>
-                        <label for="feed_url">RSS Feed URL:</label>
-                        <input
-                            type="text"
-                            id="feed_url"
-                            name="feed_url"
-                            required
-                        />
-                    </fieldset>
+            <div class="settings-panel">
+                <div class="settings-panel-header settings-panel-header-row">
+                    <div>
+                        <h4>Manage feeds</h4>
+                        <p class="settings-panel-subtitle manage-feeds-subtitle">
+                            Add new sources, tune metadata, and keep your feed list clean.
+                        </p>
+                    </div>
+                    <form action="/refresh" method="get" class="pure-form manage-feeds-sync-form">
+                        <button class="pure-button settings-button settings-button-secondary manage-feeds-sync-button" type="submit">Force sync</button>
+                    </form>
                 </div>
-                <div class="pure-control-group">
-                    <fieldset>
-                        <label for="feed_title">Feed title:</label>
-                        <input
-                            type="text"
-                            id="feed_title"
-                            name="feed_title"
-                            placeholder="Optional"
-                        />
-                    </fieldset>
-                </div>
-                <div class="pure-control-group">
-                    <fieldset>
-                        <label for="feed_tags">Tags:</label>
-                        <input
-                            type="text"
-                            id="feed_tags"
-                            name="feed_tags"
-                            placeholder="e.g. tech, security"
-                        />
-                    </fieldset>
-                </div>
-                <div class="pure-control-group">
-                    <fieldset>
-                        <button class="pure-button" type="submit">
-                            Add RSS Feed
-                        </button>
-                    </fieldset>
-                </div>
-            </form>
 
-            <ul>
-                {{range .UserFeeds}}
-                <li>
-                    {{if .Title}}
-                    <p><b>{{.Title}}</b></p>
+                <form action="/internal/api/user/settings/feed/add" class="pure-form feed-add-form" method="post">
+                    <div class="feed-add-grid">
+                        <div class="feed-add-field">
+                            <label for="feed_url">RSS feed URL</label>
+                            <input
+                                type="text"
+                                id="feed_url"
+                                name="feed_url"
+                                placeholder="https://example.com/rss"
+                                required
+                            />
+                        </div>
+                        <div class="feed-add-field">
+                            <label for="feed_title">Display title</label>
+                            <input
+                                type="text"
+                                id="feed_title"
+                                name="feed_title"
+                                placeholder="Optional"
+                            />
+                        </div>
+                        <div class="feed-add-field">
+                            <label for="feed_tags">Tags</label>
+                            <input
+                                type="text"
+                                id="feed_tags"
+                                name="feed_tags"
+                                placeholder="tech, security"
+                            />
+                        </div>
+                    </div>
+                    <div class="feed-add-actions">
+                        <button class="pure-button settings-button settings-button-primary feed-add-button" type="submit">Add feed</button>
+                    </div>
+                </form>
+
+                <div class="manage-feeds-list-header">
+                    <h5>Added feeds</h5>
+                    <span class="manage-feeds-count">{{len .UserFeeds}}</span>
+                </div>
+                {{if .UserFeeds}}
+                <ul class="feed-management-list">
+                    {{range .UserFeeds}}
+                    <li class="feed-management-item">
+                        <div class="feed-card-top">
+                            <div class="feed-card-main">
+                                <p class="feed-card-title">{{if .Title}}{{.Title}}{{else}}Untitled feed{{end}}</p>
+                                <a href="{{.FeedURL}}" class="feed-card-url" target="_blank" rel="noopener noreferrer">{{ .FeedURL }}</a>
+                            </div>
+                        </div>
+                        <div class="feed-item-actions">
+                            <details class="feed-edit-details">
+                                <summary class="feed-edit-toggle">Edit metadata</summary>
+                                <form action="/internal/api/user/settings/feed/update" method="post" class="pure-form feed-edit-form">
+                                    <input type="hidden" name="feed_id" value="{{.ID}}" />
+                                    <div class="feed-edit-grid">
+                                        <div class="feed-edit-field">
+                                            <label for="edit_feed_title_{{.ID}}">Display title</label>
+                                            <input
+                                                type="text"
+                                                id="edit_feed_title_{{.ID}}"
+                                                name="feed_title"
+                                                value="{{.Title}}"
+                                                placeholder="Optional"
+                                            />
+                                        </div>
+                                        <div class="feed-edit-field">
+                                            <label for="edit_feed_tags_{{.ID}}">Tags</label>
+                                            <input
+                                                type="text"
+                                                id="edit_feed_tags_{{.ID}}"
+                                                name="feed_tags"
+                                                value="{{.Tags}}"
+                                                placeholder="tech, security"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div class="feed-edit-actions">
+                                        <button class="pure-button settings-button settings-button-primary feed-save-button" type="submit">Save</button>
+                                    </div>
+                                </form>
+                            </details>
+                            <form action="/internal/api/user/settings/feed/remove" method="post" class="pure-form feed-delete-form">
+                                <input type="hidden" name="feed_id" value="{{.ID}}" />
+                                <button class="pure-button settings-button settings-button-danger feed-delete-button" type="submit">Delete</button>
+                            </form>
+                        </div>
+                    </li>
                     {{end}}
-                    <p>{{ .FeedURL }}</p>
-                    <form action="/internal/api/user/settings/feed/update" method="post" class="pure-form">
-                        <label for="edit_feed_title_{{.ID}}">Title:</label>
-                        <input
-                            type="text"
-                            id="edit_feed_title_{{.ID}}"
-                            name="feed_title"
-                            value="{{.Title}}"
-                            placeholder="Optional"
-                        />
-                        <label for="edit_feed_tags_{{.ID}}">Tags:</label>
-                        <input
-                            type="text"
-                            id="edit_feed_tags_{{.ID}}"
-                            name="feed_tags"
-                            value="{{.Tags}}"
-                            placeholder="e.g. tech, security"
-                        />
-                        <input type="hidden" name="feed_id" value="{{.ID}}" />
-                        <button class="pure-button" type="submit">Edit</button>
-                    </form>
-                    <form action="/internal/api/user/settings/feed/remove" method="post" class="pure-form">
-                        <input type="hidden" name="feed_id" value="{{.ID}}" />
-                        <button class="pure-button" type="submit">Delete</button>
-                    </form>
-                </li>
+                </ul>
+                {{else}}
+                <div class="manage-feeds-empty">
+                    <p>No feeds added yet. Add your first source above.</p>
+                </div>
                 {{end}}
-            </ul>
+            </div>
         </div>
 
         <div id="api-token" class="settings-section">
-            <h4>Access token</h4>
-            <span class="hint">
-                Use this token for MCP access to your personal feeds
-            </span>
-            {{ if .UserToken }}
-            <div class="pure-control-group">
-                <fieldset>
-                    <label for="user_token">Your token:</label>
-                    <input
-                        type="text"
-                        id="user_token"
-                        name="user_token"
-                        value="{{ .UserToken }}"
-                        readonly
-                    />
-                </fieldset>
-            </div>
-            <div class="pure-control-group">
-                <fieldset>
-                    <form
-                        action="/internal/api/user/settings/apiToken/add"
-                        method="post"
-                        class="pure-form"
-                    >
-                        <button class="pure-button" type="submit">
+            <div class="settings-panel">
+                <div class="settings-panel-header">
+                    <h4>Access token</h4>
+                    <p class="settings-panel-subtitle">
+                        Use this token for MCP access to your personal feeds.
+                    </p>
+                </div>
+                {{ if .UserToken }}
+                <div class="settings-form-grid settings-form-grid-single">
+                    <div class="settings-field">
+                        <label for="user_token">Your token</label>
+                        <input
+                            type="text"
+                            id="user_token"
+                            name="user_token"
+                            class="settings-token-input"
+                            value="{{ .UserToken }}"
+                            readonly
+                        />
+                    </div>
+                </div>
+                <div class="settings-actions settings-actions-start">
+                    <form action="/internal/api/user/settings/apiToken/add" method="post" class="pure-form">
+                        <button class="pure-button settings-button settings-button-primary" type="submit">
                             Rotate token
                         </button>
                     </form>
-                    <form
-                        action="/internal/api/user/settings/apiToken/revoke"
-                        method="post"
-                        class="pure-form"
-                    >
-                        <button class="pure-button" type="submit">
+                    <form action="/internal/api/user/settings/apiToken/revoke" method="post" class="pure-form">
+                        <button class="pure-button settings-button settings-button-danger" type="submit">
                             Disable token
                         </button>
                     </form>
-                </fieldset>
-            </div>
-            {{ else }}
-            <p>No token generated yet.</p>
-            <div class="pure-control-group">
-                <fieldset>
-                    <form
-                        action="/internal/api/user/settings/apiToken/add"
-                        method="post"
-                        class="pure-form"
-                    >
-                        <button class="pure-button" type="submit">
+                </div>
+                {{ else }}
+                <div class="settings-empty-note">
+                    <p>No token generated yet.</p>
+                </div>
+                <div class="settings-actions settings-actions-start">
+                    <form action="/internal/api/user/settings/apiToken/add" method="post" class="pure-form">
+                        <button class="pure-button settings-button settings-button-primary" type="submit">
                             Generate token
                         </button>
                     </form>
-                </fieldset>
+                </div>
+                {{ end }}
             </div>
-            {{ end }}
         </div>
     </section>
 </div>
 
+<script>
+(function () {
+    function lockButton(btn, label) {
+        btn.disabled = true;
+        btn.textContent = label;
+    }
+
+    var syncForm = document.querySelector(".manage-feeds-sync-form");
+    if (syncForm) {
+        syncForm.addEventListener("submit", function () {
+            lockButton(syncForm.querySelector("button[type=submit]"), "Syncing\u2026");
+        });
+    }
+
+    var addForm = document.querySelector(".feed-add-form");
+    if (addForm) {
+        addForm.addEventListener("submit", function () {
+            lockButton(addForm.querySelector("button[type=submit]"), "Adding\u2026");
+        });
+    }
+}());
+</script>
 {{- template "base_footer" . }}

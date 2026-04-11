@@ -1,8 +1,6 @@
 BINARY_NAME := rapidfeed
-MIGRATOR_BINARY_NAME := rapidfeed-migrator
-VERSION     := 1.0.8
-SRC         := ./cmd/rapidfeed
-MIGRATOR_SRC := ./cmd/migrator
+VERSION     := 1.0.9
+SRC         := cmd/main.go
 COMMIT := $(shell git rev-parse --short HEAD)
 CGO_ENABLED ?= 0
 
@@ -43,6 +41,9 @@ build:
 docker-latest:
 	docker build --platform=linux/amd64 -t ghcr.io/georgijgrigoriev/rapidfeed:latest --build-arg VERSION=latest --build-arg COMMIT=$(COMMIT) -f build/Dockerfile .
 
+docker-nightly:
+	docker build --platform=linux/amd64 -t ghcr.io/georgijgrigoriev/rapidfeed:nightly --build-arg VERSION=nightly --build-arg COMMIT=$(COMMIT) -f build/Dockerfile .
+
 docker-build-version: docker-amd64 docker-arm64
 
 docker-arm64:
@@ -58,6 +59,12 @@ docker-push-amd64:
 	docker push ghcr.io/georgijgrigoriev/rapidfeed:$(VERSION)-amd64
 
 docker-push-all: docker-push-arm64 docker-push-amd64
+
+migrate-normalize-feeds:
+	@echo "Running feed text normalization migration..."
+	@CGO_ENABLED=$(CGO_ENABLED) go run \
+		-ldflags "-X main.Version=$(VERSION) -X main.Commit=$(COMMIT)" \
+		$(SRC) -migrate-normalize-feeds
 
 clean:
 	@echo "Cleaning up..."

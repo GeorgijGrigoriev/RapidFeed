@@ -55,6 +55,7 @@ func New() {
 	adminApiRoutes.Post("/user/add", addUserHandler)
 	adminApiRoutes.Post("/user/block", blockUserHandler)
 	adminApiRoutes.Post("/user/unblock", unblockUserHandler)
+	adminApiRoutes.Post("/user/role/change", changeUserRoleHandler)
 	adminApiRoutes.Post("/user/feed/remove", removeUserFeedHandler)
 
 	log.Fatal(app.Listen(utils.Listen))

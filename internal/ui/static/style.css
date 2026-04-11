@@ -303,9 +303,546 @@ pre {
 
 .settings-section:target { display: block; }
 
+.user-settings-page {
+    max-width: 1100px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.user-settings-page #manage-feeds {
+    display: block;
+}
+
+body:has(.user-settings-page .settings-content .settings-section:target) .user-settings-page #manage-feeds:not(:target) {
+    display: none;
+}
+
+.admin-settings-content #add-user {
+    display: block;
+}
+
+body:has(.admin-settings-content .settings-section:target) .admin-settings-content #add-user:not(:target) {
+    display: none;
+}
+
+.settings-panel {
+    background: #fff;
+    border: 1px solid #d7e0ea;
+    border-radius: 12px;
+    padding: 1rem;
+    box-shadow: 0 4px 12px rgba(19, 42, 64, 0.05);
+}
+
+.settings-panel-header {
+    margin-bottom: 0.95rem;
+}
+
+.settings-panel-header h4 {
+    margin: 0;
+}
+
+.settings-panel-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.settings-panel-subtitle {
+    margin: 0.3rem 0 0;
+    font-size: 0.88rem;
+    color: #6b7280;
+}
+
+.settings-section .alert {
+    margin: 0 0 0.9rem;
+}
+
+.settings-section .alert p {
+    margin: 0.35rem 0 0;
+}
+
+.settings-form {
+    margin: 0;
+}
+
+.settings-form-grid {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.settings-form-grid-single {
+    grid-template-columns: 1fr;
+    max-width: 34rem;
+}
+
+.settings-form-grid-double {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.settings-field,
+.feed-add-field,
+.feed-edit-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.settings-field label,
+.feed-add-field label,
+.feed-edit-field label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #3c4a5a;
+}
+
+.settings-field input,
+.settings-field select,
+.feed-add-field input,
+.feed-edit-field input {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #cad5e0;
+    border-radius: 6px;
+    padding: 0.5rem 0.6rem;
+    font-size: 0.9rem;
+}
+
+.settings-token-input {
+    font-family: "Courier New", monospace;
+    font-size: 0.82rem;
+}
+
+.settings-actions,
+.feed-add-actions,
+.feed-edit-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.55rem;
+    margin-top: 0.8rem;
+    flex-wrap: wrap;
+}
+
+.settings-actions-start {
+    justify-content: flex-start;
+}
+
+.settings-actions .pure-form {
+    margin: 0;
+}
+
+.settings-button {
+    border: 1px solid transparent;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    line-height: 1.2;
+    padding: 0.5rem 0.9rem;
+}
+
+.settings-button-primary,
+.feed-add-button,
+.feed-save-button {
+    background: #2a6f9c;
+    color: #fff;
+}
+
+.settings-button-primary:hover,
+.feed-add-button:hover,
+.feed-save-button:hover {
+    background: #215a7e;
+}
+
+.settings-button-secondary,
+.manage-feeds-sync-button {
+    background: #f0f4f8;
+    color: #324b64;
+    border-color: #cad8e5;
+}
+
+.settings-button-secondary:hover,
+.manage-feeds-sync-button:hover {
+    background: #e6edf4;
+}
+
+.settings-button-danger,
+.feed-delete-button {
+    background: #fff2f0;
+    color: #b42318;
+    border-color: #f6c7c3;
+}
+
+.settings-button-danger:hover,
+.feed-delete-button:hover {
+    background: #fde8e6;
+}
+
+.settings-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+    margin-bottom: 0.9rem;
+}
+
+.settings-meta-item {
+    border: 1px solid #d7e0ea;
+    border-radius: 8px;
+    padding: 0.55rem 0.65rem;
+    background: #f8fbff;
+}
+
+.settings-meta-label {
+    display: block;
+    font-size: 0.76rem;
+    color: #6b7280;
+}
+
+.settings-meta-value {
+    display: block;
+    margin-top: 0.2rem;
+    font-size: 0.87rem;
+    color: #25364a;
+    overflow-wrap: break-word;
+}
+
+.settings-empty-note {
+    border: 1px dashed #cdd6e0;
+    border-radius: 10px;
+    padding: 0.9rem;
+    color: #5f6b79;
+    background: #f9fbfd;
+}
+
+.settings-empty-note p {
+    margin: 0;
+}
+
+.admin-settings-page {
+    max-width: 1100px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.admin-settings-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.admin-add-user-grid {
+    max-width: 42rem;
+}
+
+.admin-role-field {
+    max-width: 14rem;
+}
+
+.admin-user-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.admin-user-item {
+    border: 1px solid #d7e0ea;
+    border-radius: 10px;
+    padding: 0.85rem 0.9rem;
+    background: #f8fbff;
+}
+
+.admin-user-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.admin-user-name {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1f3346;
+}
+
+.admin-role-badge {
+    display: inline-flex;
+    margin-top: 0.3rem;
+    border-radius: 999px;
+    padding: 0.2rem 0.55rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.admin-role-user {
+    background: #e8f1fa;
+    color: #2a5679;
+}
+
+.admin-role-admin {
+    background: #e7f6ec;
+    color: #1f6a3e;
+}
+
+.admin-role-blocked {
+    background: #feeceb;
+    color: #a73124;
+}
+
+.admin-user-actions .pure-form {
+    margin: 0;
+}
+
+.admin-user-feeds {
+    margin-top: 0.8rem;
+    padding-top: 0.7rem;
+    border-top: 1px dashed #d8e1eb;
+}
+
+.admin-user-feeds-title {
+    margin: 0 0 0.5rem;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #455264;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.admin-feed-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+
+.admin-feed-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.75rem;
+    border: 1px solid #dbe4ee;
+    border-radius: 8px;
+    background: #fff;
+    padding: 0.65rem 0.7rem;
+}
+
+.admin-feed-main {
+    min-width: 0;
+}
+
+.admin-feed-title {
+    margin: 0;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #25364a;
+}
+
+.admin-feed-url {
+    display: inline-block;
+    margin-top: 0.2rem;
+    color: #2c6a98;
+    font-size: 0.8rem;
+    text-decoration: none;
+    word-break: break-all;
+}
+
+.admin-feed-url:hover {
+    text-decoration: underline;
+}
+
+.admin-feed-tags {
+    margin: 0.3rem 0 0;
+    font-size: 0.78rem;
+    color: #5f6b79;
+}
+
+.admin-feed-delete-form {
+    margin: 0;
+    align-self: flex-start;
+}
+
+.manage-feeds-subtitle {
+    margin: 0;
+}
+
+.manage-feeds-sync-form {
+    margin: 0;
+}
+
+.feed-add-form {
+    background: #f8fbff;
+    border: 1px solid #d7e0ea;
+    border-radius: 10px;
+    padding: 0.9rem;
+    margin-bottom: 1rem;
+    box-shadow: none;
+}
+
+.feed-add-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.manage-feeds-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.55rem;
+}
+
+.manage-feeds-list-header h5 {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #344255;
+}
+
+.manage-feeds-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 999px;
+    background: #e5edf5;
+    color: #2a5679;
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 0 0.45rem;
+}
+
+.feed-management-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+}
+
+.feed-management-item {
+    background: #fff;
+    border: 1px solid #d7e0ea;
+    border-radius: 10px;
+    padding: 0.85rem 0.9rem;
+    box-shadow: 0 3px 10px rgba(19, 42, 64, 0.04);
+}
+
+.feed-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.feed-card-main {
+    min-width: 0;
+}
+
+.feed-card-title {
+    margin: 0;
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: #1f3346;
+}
+
+.feed-card-url {
+    display: inline-block;
+    margin-top: 0.25rem;
+    color: #2c6a98;
+    font-size: 0.82rem;
+    text-decoration: none;
+    word-break: break-all;
+}
+
+.feed-card-url:hover {
+    text-decoration: underline;
+}
+
+.feed-item-actions {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+    padding-top: 0.65rem;
+    border-top: 1px dashed #d8e1eb;
+}
+
+.feed-edit-details {
+    flex: 1;
+}
+
+.feed-edit-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    cursor: pointer;
+    color: #2c6a98;
+    font-size: 0.83rem;
+    font-weight: 600;
+    list-style: none;
+}
+
+.feed-edit-toggle::-webkit-details-marker {
+    display: none;
+}
+
+.feed-edit-toggle::before {
+    content: "+";
+    font-size: 0.95rem;
+    line-height: 1;
+}
+
+.feed-edit-details[open] .feed-edit-toggle::before {
+    content: "-";
+}
+
+.feed-delete-form {
+    margin: 0;
+    align-self: flex-start;
+}
+
+.feed-edit-form {
+    margin-top: 0.65rem;
+}
+
+.feed-edit-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.7rem;
+}
+
+.manage-feeds-empty {
+    border: 1px dashed #cdd6e0;
+    border-radius: 10px;
+    padding: 1rem;
+    text-align: center;
+    color: #5f6b79;
+    background: #f9fbfd;
+}
+
 body:has(#change-password:target) .settings-menu a[href="#change-password"],
 body:has(#autorefresh:target)      .settings-menu a[href="#autorefresh"],
-body:has(#manage-feeds:target)     .settings-menu a[href="#manage-feeds"] {
+body:has(#manage-feeds:target)     .settings-menu a[href="#manage-feeds"],
+body:has(#api-token:target)        .settings-menu a[href="#api-token"],
+body:has(#add-user:target)         .settings-menu a[href="#add-user"],
+body:has(#manage-users:target)     .settings-menu a[href="#manage-users"] {
+    background: #e0e0e0;
+    font-weight: 600;
+}
+
+body:not(:has(.admin-settings-content .settings-section:target)) .admin-settings-page .settings-menu a[href="#add-user"] {
+    background: #e0e0e0;
+    font-weight: 600;
+}
+
+body:not(:has(.user-settings-page .settings-content .settings-section:target)) .user-settings-page .settings-menu a[href="#manage-feeds"] {
     background: #e0e0e0;
     font-weight: 600;
 }
@@ -322,5 +859,80 @@ body:has(#manage-feeds:target)     .settings-menu a[href="#manage-feeds"] {
     .settings-menu a {
         display: inline-block;
         margin-right: 0.5rem;
+    }
+
+    .settings-panel {
+        padding: 0.85rem;
+    }
+
+    .settings-panel-header-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .settings-meta-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .settings-form-grid-double,
+    .feed-add-grid,
+    .feed-edit-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .settings-actions,
+    .feed-add-actions,
+    .feed-edit-actions {
+        justify-content: stretch;
+    }
+
+    .settings-actions .pure-form {
+        width: 100%;
+    }
+
+    .settings-button,
+    .feed-add-button,
+    .feed-save-button {
+        width: 100%;
+    }
+
+    .admin-role-field {
+        max-width: none;
+    }
+
+    .admin-user-top,
+    .admin-feed-item {
+        flex-direction: column;
+    }
+
+    .admin-user-actions .pure-form,
+    .admin-feed-delete-form {
+        width: 100%;
+    }
+
+    .feed-card-top {
+        flex-direction: column;
+    }
+
+    .feed-item-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .feed-edit-toggle {
+        width: 100%;
+        justify-content: center;
+        border: 1px solid #cad5e0;
+        border-radius: 6px;
+        padding: 0.45rem;
+        box-sizing: border-box;
+    }
+
+    .feed-delete-form {
+        width: 100%;
+    }
+
+    .feed-delete-button {
+        width: 100%;
     }
 }
