@@ -341,7 +341,7 @@ body:has(.admin-settings-content .settings-section:target) .admin-settings-conte
     margin: 0;
 }
 
-.settings-panel-header--row {
+.settings-panel-header-row {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
@@ -371,12 +371,12 @@ body:has(.admin-settings-content .settings-section:target) .admin-settings-conte
     gap: 0.75rem;
 }
 
-.settings-form-grid--single {
+.settings-form-grid-single {
     grid-template-columns: 1fr;
     max-width: 34rem;
 }
 
-.settings-form-grid--double {
+.settings-form-grid-double {
     grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
@@ -502,7 +502,7 @@ body:has(.admin-settings-content .settings-section:target) .admin-settings-conte
     margin-top: 0.2rem;
     font-size: 0.87rem;
     color: #25364a;
-    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 .settings-empty-note {
@@ -865,7 +865,7 @@ body:not(:has(.user-settings-page .settings-content .settings-section:target)) .
         padding: 0.85rem;
     }
 
-    .settings-panel-header--row {
+    .settings-panel-header-row {
         flex-direction: column;
         align-items: stretch;
     }
@@ -874,7 +874,7 @@ body:not(:has(.user-settings-page .settings-content .settings-section:target)) .
         grid-template-columns: 1fr;
     }
 
-    .settings-form-grid--double,
+    .settings-form-grid-double,
     .feed-add-grid,
     .feed-edit-grid {
         grid-template-columns: 1fr;

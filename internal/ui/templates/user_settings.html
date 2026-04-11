@@ -31,7 +31,7 @@
                 </div>
                 {{ end }}
                 <form action="/internal/api/user/settings/password/change" class="pure-form settings-form" method="post">
-                    <div class="settings-form-grid settings-form-grid--single">
+                    <div class="settings-form-grid settings-form-grid-single">
                         <div class="settings-field">
                             <label for="current_password">Current password</label>
                             <input
@@ -79,7 +79,7 @@
                     </div>
                 </div>
                 <form method="post" action="/internal/api/user/settings/autorefresh/set" class="pure-form settings-form">
-                    <div class="settings-form-grid settings-form-grid--single">
+                    <div class="settings-form-grid settings-form-grid-single">
                         <div class="settings-field">
                             <label for="refresh_interval">
                                 Refresh interval (minutes)
@@ -106,7 +106,7 @@
 
         <div id="manage-feeds" class="settings-section">
             <div class="settings-panel">
-                <div class="settings-panel-header settings-panel-header--row">
+                <div class="settings-panel-header settings-panel-header-row">
                     <div>
                         <h4>Manage feeds</h4>
                         <p class="settings-panel-subtitle manage-feeds-subtitle">
@@ -225,7 +225,7 @@
                     </p>
                 </div>
                 {{ if .UserToken }}
-                <div class="settings-form-grid settings-form-grid--single">
+                <div class="settings-form-grid settings-form-grid-single">
                     <div class="settings-field">
                         <label for="user_token">Your token</label>
                         <input
