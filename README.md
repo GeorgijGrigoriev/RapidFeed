@@ -30,7 +30,7 @@ RapidFeed is an open-source RSS reader server written in Go (Golang). Designed w
 2. **Build and Run**
 
    ```bash
-   CGO_ENABLED=0 go build -o rapidfeed cmd/main.go
+   CGO_ENABLED=0 go build -o rapidfeed cmd/rapidfeed/main.go
    ./rapidfeed
    ```
     OR
@@ -54,7 +54,17 @@ RapidFeed is an open-source RSS reader server written in Go (Golang). Designed w
       REGISTRATION_ALLOWED: true #allow or disallow self user registration on RapidFeed server
       DB_PATH: "./feeds.db" #sqlite database path
    ```
-4. **Access the Application**
+4. **Database Migrations**
+
+   Migrations run automatically on startup. To manage them manually:
+
+   ```bash
+   make migrate-up              # apply all pending migrations
+   make migrate-down            # roll back 1 step (asks for confirmation)
+   go run cmd/migrator/main.go -direction down -steps 2 -force  # skip prompt
+   ```
+
+5. **Access the Application**
 
     Open your web browser and navigate to `http://localhost:8080`. Adjust the port number if necessary based on your configuration. Default user is **admin**, default **password is shown once on first app start**, consider add new admin and block default or change password.
 

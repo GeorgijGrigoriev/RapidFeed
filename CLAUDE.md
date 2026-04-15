@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 # Run for current platform
-go run cmd/main.go
+go run cmd/rapidfeed/main.go
 
 # Build for current platform
 make bin
@@ -34,15 +34,15 @@ RapidFeed is a server-rendered RSS reader with no frontend JavaScript. It runs t
 - **Main app** (`:8080` by default) — Fiber-based web server serving HTML
 - **MCP server** (`:8090` by default) — Streamable HTTP MCP endpoint for LLM tool access
 
-### Startup sequence (`cmd/main.go`)
+### Startup sequence (`cmd/rapidfeed/main.go`)
 
-`init()` loads env config → opens SQLite DB → `InitSchema()` → `CreateDefaultAdmin()` → `RunAllMigrations()`. Then `main()` starts `feeder.StartAutoRefresh()` in a goroutine, `mcp.Start()` in another goroutine, and calls `http.New()` which blocks.
+`init()` loads env config → opens SQLite DB → `RunMigrations(MigrateUp)` → `CreateDefaultAdmin()`. Then `main()` starts `feeder.StartAutoRefresh()` in a goroutine, `mcp.Start()` in another goroutine, and calls `http.New()` which blocks.
 
 ### Key packages
 
 | Package | Purpose |
 |---|---|
-| `internal/db` | All SQLite access via the global `db.DB *sql.DB`. Schema init, migrations, and all CRUD live here. |
+| `internal/db` | All SQLite access via the global `db.DB *sql.DB`. Migrations via `golang-migrate` (embedded SQL files in `migrations/`), and all CRUD live here. |
 | `internal/http` | Fiber route registration, handlers, session middleware, template engine setup. |
 | `internal/feeder` | Fetches RSS feeds via `gofeed`, deduplicates by `(link, feed_url)`, and runs a per-user auto-refresh loop checking every minute. |
 | `internal/mcp` | MCP server exposing `feeds_today`, `feeds_yesterday`, `feeds_latest` tools. Auth via `user_tokens` table. |
@@ -61,7 +61,7 @@ SQLite at `./feeds.db` (configurable via `DB_PATH`). Tables:
 - `user_refresh_settings` — per-user auto-refresh interval and next update timestamp
 - `token_storage` — session tokens for the web UI
 
-Migrations are additive `ALTER TABLE` statements run unconditionally at startup; duplicate-column errors are silently ignored.
+Migrations are managed by `golang-migrate` with versioned SQL files in `migrations/`. They run automatically at startup via `RunMigrations(MigrateUp)`. Use `cmd/migrator` or `make migrate-up` / `make migrate-down` to run migrations manually.
 
 ### Authentication
 

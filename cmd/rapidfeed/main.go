@@ -51,24 +51,34 @@ func init() {
 }
 
 func main() {
-	migrateNormalize := flag.Bool("migrate-normalize-feeds", false, "Normalize feed text in DB: strip HTML, decode entities, collapse whitespace. Runs and exits.")
+	migrateNormalize := flag.Bool("migrate-normalize-feeds", false,
+		"Normalize feed text in DB: strip HTML, decode entities, collapse whitespace. Runs and exits.")
+
 	flag.Parse()
+
+	// this migration needed to clean up HTML tags and entities from feed text, which were previously stored as-is.
+	// will be dropped in future versions, maybe current + 3 releases
 
 	if *migrateNormalize {
 		if err := db.MigrateNormalizeFeedText(); err != nil {
 			slog.Error("migration failed", "error", err)
 			os.Exit(1)
 		}
+
 		return
 	}
 
 	slog.Info("Starting RapidFeed server")
+
 	go feeder.StartAutoRefresh()
+
 	go func() {
 		slog.Info("Starting RapidFeed MCP server", "listen", utils.MCPListen)
+
 		if err := mcp.Start(utils.MCPListen); err != nil {
 			slog.Error("MCP server failed", "error", err)
 		}
 	}()
+
 	http.New()
 }
