@@ -1,4 +1,4 @@
-FROM golang:1.25
+FROM golang:1.25.8-bookworm
 
 WORKDIR /app
 
@@ -7,8 +7,6 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 go build -o rapidfeed cmd/main.go
-
-EXPOSE 8000
+RUN CGO_ENABLED=0 go build -o rapidfeed cmd/rapidfeed/main.go
 
 CMD ["./rapidfeed"]

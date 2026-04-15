@@ -35,38 +35,50 @@ func init() {
 
 	slog.Info("Connection opened")
 
-	db.InitSchema() // maybe not necessary call it every time?
+	slog.Info("Running database migrations")
+
+	if err := db.RunMigrations(db.MigrateUp, 0); err != nil {
+		slog.Error("failed to run database migrations", "error", err)
+
+		os.Exit(1)
+	}
+
+	slog.Info("Database migrations done")
 
 	db.CreateDefaultAdmin()
 
 	slog.Info("Database initialized")
-
-	slog.Info("Running database migrations")
-
-	db.RunAllMigrations()
-
-	slog.Info("Database migrations done")
 }
 
 func main() {
-	migrateNormalize := flag.Bool("migrate-normalize-feeds", false, "Normalize feed text in DB: strip HTML, decode entities, collapse whitespace. Runs and exits.")
+	migrateNormalize := flag.Bool("migrate-normalize-feeds", false,
+		"Normalize feed text in DB: strip HTML, decode entities, collapse whitespace. Runs and exits.")
+
 	flag.Parse()
+
+	// this migration needed to clean up HTML tags and entities from feed text, which were previously stored as-is.
+	// will be dropped in future versions, maybe current + 3 releases
 
 	if *migrateNormalize {
 		if err := db.MigrateNormalizeFeedText(); err != nil {
 			slog.Error("migration failed", "error", err)
 			os.Exit(1)
 		}
+
 		return
 	}
 
 	slog.Info("Starting RapidFeed server")
+
 	go feeder.StartAutoRefresh()
+
 	go func() {
 		slog.Info("Starting RapidFeed MCP server", "listen", utils.MCPListen)
+
 		if err := mcp.Start(utils.MCPListen); err != nil {
 			slog.Error("MCP server failed", "error", err)
 		}
 	}()
+
 	http.New()
 }

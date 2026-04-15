@@ -40,7 +40,7 @@ DB_PATH=/path/to/feeds.db make migrate-normalize-feeds
 **Directly:**
 
 ```bash
-go run cmd/main.go -migrate-normalize-feeds
+go run cmd/rapidfeed/main.go -migrate-normalize-feeds
 # or, if you already have a built binary:
 ./rapidfeed -migrate-normalize-feeds
 ```

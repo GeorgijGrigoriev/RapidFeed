@@ -36,6 +36,7 @@ feeds.db
 
 #compiled binaries
 rapidfeed-*
+migrator
 
 .agents
 .claude
